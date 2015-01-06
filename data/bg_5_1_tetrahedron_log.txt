@@ -1,0 +1,12 @@
+vertices 5
+1 1 1 1 1 
+shell_vertices 5
+1 1 1 1 1 
+edges 4
+1 1 1 1 
+shell_edges 4
+1 1 1 1 
+time 0
+0 0 0 0 
+pathways 1
+shell_pathways 1
