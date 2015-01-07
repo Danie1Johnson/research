@@ -26,3 +26,9 @@ def positive_boundary_normal(x, b_num):
     n[b_num] = 1.0
     return n
 ###--------------------------------------------------------------------------
+def none_boundary(x):
+    return []
+
+def none_boundary_normal(x, b_num):
+    return None
+###--------------------------------------------------------------------------

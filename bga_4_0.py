@@ -565,6 +565,7 @@ def get_tail_rate(t, u, interval_num=10):
     return -((np.log(u[-1]) - np.log(u[-interval_num]))/(t[-1] - t[-interval_num]))
     
 
+
 def load_bg_int(poly_name, int_num):
     """
     Load information about specified polyhedral intermediate. 
@@ -637,31 +638,6 @@ def load_bg_int(poly_name, int_num):
     lengths = np.array([numpy.linalg.norm(verts[old_v_ind_from_new[links[k][0]],:] - verts[old_v_ind_from_new[links[k][1]],:]) for k in range(len(links))])
 
     return N, dim, q0, masses, links, lengths, faces
-
-
-def linkage_c_fun(q, links, lengths, m, dim=3):
-    """
-    Return np array of length m containting each constraint evaluated at q.
-    """
-    c = np.zeros((m,))
-    for i, link in enumerate(links):
-        c[i] = sum((q[dim*link[0]:dim*link[0] + dim] - 
-                    q[dim*link[1]:dim*link[1] + dim])**2) - self.lengths[i]**2
-    return c
-
-def linkage_C_fun(q, links, m, n, dim=3):
-    """
-    Compute Jacobian matrix of c at q.
-    """    
-    C = np.zeros((m,n))
-    for k, link in enumerate(links):
-        for d in range(dim):
-            C[k,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
-            C[k,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
-    return C
-
-
-
 
 #
 ##poly_name = 'tetrahedron'
