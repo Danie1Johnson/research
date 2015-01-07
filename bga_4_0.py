@@ -15,12 +15,12 @@ import math
 #from mpl_toolkits.mplot3d import Axes3D
 #from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 #import matplotlib.pyplot as plt
-import pandas as pd
-from pandas import Series, DataFrame
+#import pandas as pd
+#from pandas import Series, DataFrame
 
-import polyhedra
+import polyhedra as poly
 
-version = "5_1"
+bg_version = "5_1"
 
 def get_filename(poly_name, prefix, suffix):
     """
@@ -33,7 +33,7 @@ def get_poly(poly_name):
     """"
     Return data from BG input file for poly
     """
-    f = open(get_filename(poly_name, '', '_'+version+'.txt'), 'r')
+    f = open(get_filename(poly_name, '', '_'+bg_version+'.txt'), 'r')
     # Shape name 
     line = [x for x in f.readline().split()]
     if line[0] != poly_name:
@@ -64,7 +64,7 @@ def get_bg_ss(poly_name):
     Read BG state space from file.
     """
     # Load file.
-    f = open(get_filename(poly_name,'bg_' + version + '_', '_arc.txt'), 'r')
+    f = open(get_filename(poly_name,'bg_' + bg_version + '_', '_arc.txt'), 'r')
     
     # Read vertices
     vert_line = f.readline().split()
@@ -108,7 +108,7 @@ def get_bg_log(poly_name):
     Read info about building game for poly.
     """
     # Load file.
-    f = open(get_filename(poly_name,'bg_' + version + '_', '_log.txt'), 'r')
+    f = open(get_filename(poly_name,'bg_' + bg_version + '_', '_log.txt'), 'r')
     
     vertices_line = f.readline().split()
     v_counts = np.array([int(x) for x in f.readline().split()])
@@ -564,6 +564,103 @@ def get_tail_rate(t, u, interval_num=10):
 
     return -((np.log(u[-1]) - np.log(u[-interval_num]))/(t[-1] - t[-interval_num]))
     
+
+def load_bg_int(poly_name, int_num):
+    """
+    Load information about specified polyhedral intermediate. 
+    Return information for corresponding linkage.
+    """
+
+    try: 
+        poly_info = getattr(poly, poly_name)
+    except AttributeError:
+        print "ERROR:", poly_name, "not found in polyhedra.py"
+        raise
+
+    verts, face_inds, cents = poly_info()
+    V, E, F, S, species, f_types, adj_list, dual = get_poly(poly_name)
+    ints, ids, paths, shell_int, shell_paths, edges, shell_edge = get_bg_ss(poly_name)
+
+    try:
+        int_faces = ints[int_num]
+    except IndexError:
+        print "ERROR:", poly_name, "does not have a face", int_num
+        raise
+
+    # Reindex vertices in the intermediate.
+    v_in_int = np.array([False for k in range(V)])
+    for k in range(F):
+        if int_faces[k] != 0:
+            v_in_int[face_inds[k][0]] = True
+            v_in_int[face_inds[k][1]] = True
+            v_in_int[face_inds[k][2]] = True
+
+    # Create table for translating between new and old vertex indexing.
+    old_v_ind_from_new = []
+    new_v_ind_from_old = []
+
+    for v in range(V):
+        if v_in_int[v] == True:
+            new_v_ind_from_old.append(len(old_v_ind_from_new)) 
+            old_v_ind_from_new.append(v)
+        else:
+            new_v_ind_from_old.append(-1)
+
+    # Create faces, masses, links, and lengths 
+    N = len(old_v_ind_from_new)
+    dim = 3
+    face_inds_new = [[new_v_ind_from_old[face_inds[j][k]] for k in range(3)] for j in range(V) if v_in_int[j]]
+    q0 = np.array([])
+    for k in range(N):
+        for i in range(dim):
+            q0 = np.hstack((q0,verts[old_v_ind_from_new[k],i]))
+    masses = np.ones(N)
+    
+    links = []
+    faces = []
+    for f in range(F):
+        if int_faces[f] != 0:
+            new_face = []
+            for j in range(len(face_inds[f])):
+                a = face_inds[f][j-1]
+                b = face_inds[f][j]
+                a_new = new_v_ind_from_old[a]
+                b_new = new_v_ind_from_old[b]
+                mx = max(a_new, b_new)
+                mn = min(a_new, b_new)
+                #print hi, links, mn, mx
+                if ([mn, mx] in links) == False:
+                    links.append([mn, mx])
+                new_face.append(b_new)
+            faces.append(new_face)
+
+    lengths = np.array([numpy.linalg.norm(verts[old_v_ind_from_new[links[k][0]],:] - verts[old_v_ind_from_new[links[k][1]],:]) for k in range(len(links))])
+
+    return N, dim, q0, masses, links, lengths, faces
+
+
+def linkage_c_fun(q, links, lengths, m, dim=3):
+    """
+    Return np array of length m containting each constraint evaluated at q.
+    """
+    c = np.zeros((m,))
+    for i, link in enumerate(links):
+        c[i] = sum((q[dim*link[0]:dim*link[0] + dim] - 
+                    q[dim*link[1]:dim*link[1] + dim])**2) - self.lengths[i]**2
+    return c
+
+def linkage_C_fun(q, links, m, n, dim=3):
+    """
+    Compute Jacobian matrix of c at q.
+    """    
+    C = np.zeros((m,n))
+    for k, link in enumerate(links):
+        for d in range(dim):
+            C[k,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+            C[k,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+    return C
+
+
 
 
 #
