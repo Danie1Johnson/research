@@ -71,40 +71,40 @@ class MRBM:
         return np.where(self.boundary(x) > 0)[0]
     
 
-    def find_boundary_intersection(self, x, xp, b_num, max_itrs=100):
-        """
-        Use bisection to find the point z at which the segment 
-        x <-> xp intersects boundary # b_num. 
-
-        i.e. find c \in [0,1] such that d*xp + (1-d)*x is 
-        within the boundary for d < c and outside for d > c.
-
-        Since we only need to find z within err_tol of the boundary, 
-        make sure z is just within the boundary.
-        """
-        c_mx = 1.0
-        c_mn = 0.0
-
-        if (b_num in self.boundary_check(xp)) == False:
-            print "ERROR: xp not outside boundary", xp
-            return None
-        if b_num in self.boundary_check(x):
-            print "ERROR: x outside boundary", x
-            return None
-            
-        for its in range(max_itrs):
-            if numpy.linalg.norm((c_mx - c_mn)*xp + (-c_mx + c_mn)*x) < self.err_tol:
-                return c_mn*xp + (1.0 - c_mn)*x, c_mn
-            else:
-                c_ave = 0.5*(c_mn + c_mx)
-                c_ave_viol = self.boundary_check(c_ave*xp + (1.0 - c_ave)*x)
-                if b_num in c_ave_viol:
-                    c_mx = c_ave
-                else:
-                    c_mn = c_ave
-        print "ERROR: max_itrs exceeded in find_boundary_intersection",  
-        print numpy.linalg.norm((c_mx - c_mn)*xp + (-c_mx + c_mn)*x), "greater than", self.err_tol
-        return None
+    #def find_boundary_intersection(self, x, xp, b_num, max_itrs=100):
+    #    """
+    #    Use bisection to find the point z at which the segment 
+    #    x <-> xp intersects boundary # b_num. 
+    #
+    #    i.e. find c \in [0,1] such that d*xp + (1-d)*x is 
+    #    within the boundary for d < c and outside for d > c.
+    #
+    #    Since we only need to find z within err_tol of the boundary, 
+    #    make sure z is just within the boundary.
+    #    """
+    #    c_mx = 1.0
+    #    c_mn = 0.0
+    #
+    #    if (b_num in self.boundary_check(xp)) == False:
+    #        print "ERROR: xp not outside boundary", xp
+    #        return None
+    #    if b_num in self.boundary_check(x):
+    #        print "ERROR: x outside boundary", x
+    #        return None
+    #        
+    #    for its in range(max_itrs):
+    #        if numpy.linalg.norm((c_mx - c_mn)*xp + (-c_mx + c_mn)*x) < self.err_tol:
+    #            return c_mn*xp + (1.0 - c_mn)*x, c_mn
+    #        else:
+    #            c_ave = 0.5*(c_mn + c_mx)
+    #            c_ave_viol = self.boundary_check(c_ave*xp + (1.0 - c_ave)*x)
+    #            if b_num in c_ave_viol:
+    #                c_mx = c_ave
+    #            else:
+    #                c_mn = c_ave
+    #    print "ERROR: max_itrs exceeded in find_boundary_intersection",  
+    #    print numpy.linalg.norm((c_mx - c_mn)*xp + (-c_mx + c_mn)*x), "greater than", self.err_tol
+    #    return None
                 
     
 
@@ -172,76 +172,76 @@ class MRBM:
         return x
 
 
-    def new_reflection_sample(self):
-        """
-        Draw sample according to rejection scheme.
-        """
-        x = np.copy(self.x)
-        L = (self.d)**0.5*self.h
-        # Find Bases
-        A = np.hstack((self.C(x).T, self.B))
-        Q, R = numpy.linalg.qr(A)
-        # Check for full rank
-        if Q.shape[1] != self.n:
-            print "ERROR?: A not of full rank", n, Q.shape[1]  
-            return
-        Q1 = np.copy(Q[:,:self.n-self.m])
-        Q2 = np.copy(Q[:,self.n-self.m:])
-
-        # Make step in tangent space.
-        alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
-        v = np.dot(Q2,alpha)
-        v /= numpy.linalg.norm(v)
-        y = x + L*v 
-
-        # Check if y lies outside the boundary.
-        x_viol = self.boundary_check(y)
-        while len(x_viol) > 0:
-            #print 'here'
-            boundary_crossings = [self.find_boundary_intersection(x, y, b_num) for b_num in x_viol]
-            # Find first boundary crossed (smallest c value)
-            c_min = boundary_crossings[0][1]
-            z_min = boundary_crossings[0][0]
-            b_num_min = x_viol[0]
-            for j, (z, c_z) in enumerate(boundary_crossings):
-                if c_z < c_min:
-                    c_min = c_z
-                    z_min = z
-                    b_num_min = x_viol[j]
-            if len(self.boundary_check(z_min)) > 0:
-                print "ERROR: z_min outside.", z_min, c_min, b_num_min
-            L -= numpy.linalg.norm(x - z_min) 
-            
-            # Get boundary normal at z_min.
-            z_norm_amb = self.boundary_normal(z_min, b_num_min)
-
-            # Project to the tangent plane.
-            z_norm = project_to_hyperplane(z_norm_amb, z_min, Q2, self.x)
-            z_norm /= numpy.linalg.norm(z_norm)
-
-            #print z_norm, z_min, x, z_norm_amb
-            # Find unit reflection vector
-            v_reflect = z_min - x - 2.0*np.dot(z_min - x, z_norm)*z_norm
-            #print v_reflect, Q2
-            v_reflect /= numpy.linalg.norm(v_reflect)
-            #print v_reflect
-            x = z_min
-            y = z_min + L*v_reflect
-            # Check if y lies outside the boundary. 
-            x_viol = self.boundary_check(y)
-            
-        # Project back to M
-        gamma = np.zeros(self.n-self.m)
-        F = lambda gam: self.c(y + np.dot(Q1,gam))
-        J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
-        gamma_sol = Newton(gamma, F, J, err_tol=self.err_tol)
-        x = y + np.dot(Q1,gamma_sol)
-
-        if np.all(self.boundary(x) < 0.0) == False:
-            print "ERROR: projection lies outside domain", x
-            return None
-
-        return x
+    #def new_reflection_sample(self):
+    #    """
+    #    Draw sample according to rejection scheme.
+    #    """
+    #    x = np.copy(self.x)
+    #    L = (self.d)**0.5*self.h
+    #    # Find Bases
+    #    A = np.hstack((self.C(x).T, self.B))
+    #    Q, R = numpy.linalg.qr(A)
+    #    # Check for full rank
+    #    if Q.shape[1] != self.n:
+    #        print "ERROR?: A not of full rank", n, Q.shape[1]  
+    #        return
+    #    Q1 = np.copy(Q[:,:self.n-self.m])
+    #    Q2 = np.copy(Q[:,self.n-self.m:])
+    #
+    #    # Make step in tangent space.
+    #    alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
+    #    v = np.dot(Q2,alpha)
+    #    v /= numpy.linalg.norm(v)
+    #    y = x + L*v 
+    #
+    #    # Check if y lies outside the boundary.
+    #    x_viol = self.boundary_check(y)
+    #    while len(x_viol) > 0:
+    #        #print 'here'
+    #        boundary_crossings = [self.find_boundary_intersection(x, y, b_num) for b_num in x_viol]
+    #        # Find first boundary crossed (smallest c value)
+    #        c_min = boundary_crossings[0][1]
+    #        z_min = boundary_crossings[0][0]
+    #        b_num_min = x_viol[0]
+    #        for j, (z, c_z) in enumerate(boundary_crossings):
+    #            if c_z < c_min:
+    #                c_min = c_z
+    #                z_min = z
+    #                b_num_min = x_viol[j]
+    #        if len(self.boundary_check(z_min)) > 0:
+    #            print "ERROR: z_min outside.", z_min, c_min, b_num_min
+    #        L -= numpy.linalg.norm(x - z_min) 
+    #        
+    #        # Get boundary normal at z_min.
+    #        z_norm_amb = self.boundary_normal(z_min, b_num_min)
+    #
+    #        # Project to the tangent plane.
+    #        z_norm = project_to_hyperplane(z_norm_amb, z_min, Q2, self.x)
+    #        z_norm /= numpy.linalg.norm(z_norm)
+    #
+    #        #print z_norm, z_min, x, z_norm_amb
+    #        # Find unit reflection vector
+    #        v_reflect = z_min - x - 2.0*np.dot(z_min - x, z_norm)*z_norm
+    #        #print v_reflect, Q2
+    #        v_reflect /= numpy.linalg.norm(v_reflect)
+    #        #print v_reflect
+    #        x = z_min
+    #        y = z_min + L*v_reflect
+    #        # Check if y lies outside the boundary. 
+    #        x_viol = self.boundary_check(y)
+    #        
+    #    # Project back to M
+    #    gamma = np.zeros(self.n-self.m)
+    #    F = lambda gam: self.c(y + np.dot(Q1,gam))
+    #    J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
+    #    gamma_sol = Newton(gamma, F, J, err_tol=self.err_tol)
+    #    x = y + np.dot(Q1,gamma_sol)
+    #
+    #    if np.all(self.boundary(x) < 0.0) == False:
+    #        print "ERROR: projection lies outside domain", x
+    #        return None
+    #
+    #    return x
 
     def parm_str(self, N=None, M=None, t=None):
         pstr = self.manifold_name + "_" 

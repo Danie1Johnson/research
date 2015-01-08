@@ -7,6 +7,8 @@ return a unitvector (of the smae length as x) that is inwardly normal to the b_n
 """
 import numpy as np
 
+import bga_4_0 as bga
+
 def get_manifold(manifold_name, kwargs={}):
     """
     Use manifold name to find and return constraint functions.
@@ -19,7 +21,8 @@ def get_manifold(manifold_name, kwargs={}):
         return c, C
     except KeyError, NameError:
         try:
-            [poly_name, int_num] = manifold_name.split('__')
+            [poly_name, int_num_str] = manifold_name.split('__')
+            int_num = int(int_num_str)
             n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(poly_name, int_num)
             c = lambda x: linkage_c_fun(x, links, lengths)
             C = lambda x: linkage_C_fun(x, links)
@@ -65,7 +68,7 @@ def linkage_c_fun(q, links, lengths, dim=3):
     c = np.zeros((m,))
     for i, link in enumerate(links):
         c[i] = sum((q[dim*link[0]:dim*link[0] + dim] - 
-                    q[dim*link[1]:dim*link[1] + dim])**2) - self.lengths[i]**2
+                    q[dim*link[1]:dim*link[1] + dim])**2) - lengths[i]**2
     return c
 
 def linkage_C_fun(q, links, dim=3):

@@ -27,7 +27,7 @@ def positive_boundary_normal(x, b_num):
     return n
 ###--------------------------------------------------------------------------
 def none_boundary(x):
-    return []
+    return np.array([-1.0])
 
 def none_boundary_normal(x, b_num):
     return None
