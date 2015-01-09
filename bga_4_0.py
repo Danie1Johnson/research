@@ -11,6 +11,7 @@ import os.path
 #from math import floor,cos,acos,sin
 import sys
 import math
+from time import time
 
 #from mpl_toolkits.mplot3d import Axes3D
 #from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -638,6 +639,16 @@ def load_bg_int(poly_name, int_num):
     lengths = np.array([numpy.linalg.norm(verts[old_v_ind_from_new[links[k][0]],:] - verts[old_v_ind_from_new[links[k][1]],:]) for k in range(len(links))])
 
     return N, dim, q0, masses, links, lengths, faces
+
+
+
+
+
+
+
+
+
+
 
 #
 ##poly_name = 'tetrahedron'
