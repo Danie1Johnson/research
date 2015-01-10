@@ -13,6 +13,26 @@ import sys
 import math
 from time import time
 
+
+
+
+
+
+
+
+#import numpy as np
+import matplotlib.pyplot as plt
+#from time import time
+import matplotlib.animation as animation
+
+import manifold_reflected_brownian_motion as mrbm
+
+mrbm = reload(mrbm)
+
+
+
+
+
 #from mpl_toolkits.mplot3d import Axes3D
 #from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 #import matplotlib.pyplot as plt
@@ -638,15 +658,84 @@ def load_bg_int(poly_name, int_num):
 
     lengths = np.array([numpy.linalg.norm(verts[old_v_ind_from_new[links[k][0]],:] - verts[old_v_ind_from_new[links[k][1]],:]) for k in range(len(links))])
 
+
     return N, dim, q0, masses, links, lengths, faces
 
+def face_position(bg_int, face_num, faces, dim=3):
+    """
+    Return the current and last positions in the desired dimensions for viewing.
+    """
+    x_list = []
+    y_list = []     
+     
+    ## Right now, only views in x and y dimensions
+    for v in faces[face_num]:
+        x_list.append(bg_int.x[dim*v])
+        y_list.append(bg_int.x[dim*v + 1])
+    x_list.append(bg_int.x[dim*faces[face_num][0]])
+    y_list.append(bg_int.x[dim*faces[face_num][0] + 1])
+
+    return (np.array(x_list), np.array(y_list))
 
 
+def init_aux(face_lines):
+    """
+    initialize animation
+    """
+    for k, f in enumerate(face_lines):
+        f.set_data([], [])
+    return face_lines
 
+def animate_aux(i, bg_int, faces, face_lines):
+    """
+    perform animation step
+    """
+    bg_int.sample()
+    for k, f in enumerate(face_lines):
+        f.set_data(face_position(bg_int, k, faces))
+    return face_lines
 
+def bg_animation(bg_int, faces, save_animation=False, L=1.0):
+    """
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(111, 
+                         aspect='equal', 
+                         autoscale_on=False,
+                         xlim=(-2.0, 2.0), 
+                         ylim=(-2.0, 2.0))
+    ax.grid()
 
+    face_lines = ()
+    for f in faces:
+        temp_line, = ax.plot([], [], 'o-', lw=2)
+        face_lines += (temp_line,)
 
+    animate = lambda x: animate_aux(x, bg_int, faces, face_lines)
+    init = lambda: init_aux(face_lines)
 
+    # choose the interval based on dt and the time to animate one step
+    t0 = time()
+    animate(0)
+    t1 = time()
+    interval = 1000 * (L * bg_int.h) - (t1 - t0)
+
+    ani = animation.FuncAnimation(fig, 
+                                  animate, 
+                                  frames=300,
+                                  interval=interval, 
+                                  blit=True, 
+                                  init_func=init)
+
+    if save_animation == True:
+        # save the animation as an mp4.  This requires ffmpeg or mencoder to be
+        # installed.  The extra_args ensure that the x264 codec is used, so that
+        # the video can be embedded in html5.  You may need to adjust this for
+        # your system: for more information, see
+        # http://matplotlib.sourceforge.net/api/animation_api.html
+        ani.save('triangular_linkage_diffusion.mp4', fps=3, extra_args=['-vcodec', 'libx264'])
+
+    plt.show()
 
 
 
