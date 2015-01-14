@@ -124,6 +124,17 @@ def triangle_intersection(V1, V2):
                             
     # Intersect the intervals
     return check_interval_intersection(t1a, t1b, t2a, t2b)
+
+def get_face(x, f):
+    """
+    Given a flattened configuaration vector x, and indices for a triangle's corners f,
+    return a 3x3 ndarray with the triangles coordinates.
+    """
+    t = np.zeros((3,3))
+    for k in range(3):
+        t[k,:] = x[3*f[k]:3*f[k]+3]
+    return t
+
     
 def random_triangle():
     return np.random.uniform(size=(3,3))

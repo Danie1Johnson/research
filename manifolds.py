@@ -33,6 +33,7 @@ def get_manifold(manifold_name, kwargs={}):
         print "ERROR:", manifold_name, "not found."
         raise
 
+
 ###--------------------------------------------------------------------------
 def sphere_c(x, r=1.0):
     return ellipse_c(x, r=r)

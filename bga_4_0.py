@@ -737,7 +737,22 @@ def bg_animation(bg_int, faces, save_animation=False, L=1.0):
 
     plt.show()
 
+def find_dihedrals(f1, f2, x, faces):
+    """
+    Take the index of two faces of a BG intermediate and compute the dihedral angle between them
+    """
+    n1 = triangle_normal(f1, x, faces)
+    n2 = triangle_normal(f2, x, faces)
+    return np.arccos(np.dot(n1, n2))
 
+def triangle_normal(f, x, faces):
+    """
+    Find normal vector to triangle. 
+    """
+    v1 = x[3*faces[f][0]:3*faces[f][0]+3] - x[3*faces[f][1]:3*faces[f][1]+3] 
+    v2 = x[3*faces[f][2]:3*faces[f][2]+3] - x[3*faces[f][1]:3*faces[f][1]+3] 
+    n = np.cross(v1, v2)
+    return n/numpy.linalg.norm(n)
 
 #
 ##poly_name = 'tetrahedron'

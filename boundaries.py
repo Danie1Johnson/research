@@ -1,34 +1,40 @@
 """
-NAME_boundary(x) returns a numpy array with an entry for each boundary. 
-Each entry negative for being within the boundary and positive for outside the boundary.
-
-NAME_boundary_normal(x, b_num) Assuming x is on the b_num-th boundary (or very close to it),
-return a unitvector (of the smae length as x) that is inwardly normal to the b_num-th boundary at x.
+NAME_boundary(x) returns True if x is within the boundary and False otherwise.
 """
 import numpy as np
+import triangle_intersection as ti
+
 
 def get_boundary(boundary_name, kwargs={}):
     try:
         b_fun = globals()[boundary_name+"_boundary"]
-        bn_fun = globals()[boundary_name+"_boundary_normal"]
         boundary = lambda x: b_fun(x,**kwargs)
-        boundary_normal = lambda x, y: bn_fun(x, y, **kwargs)
-        return boundary, boundary_normal
+        return boundary  #, boundary_normal
     except KeyError, NameError:
-        print "ERROR:", boundary_name, "not found."
+        try:
+            # For Building Game intermediates. Denoted 'polyname'.
+            int_num = kwargs['int_num']
+            n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
+            boundary = lambda x: nonintersection_boundary(x, faces)
+            return boundary  #, boundary_normal
+       except ValueError, IndexError:
+            pass
+        print "ERROR:", manifold_name, "not found."
+        raise
 
 ###--------------------------------------------------------------------------
 def positive_boundary(x):
-    return -x
+    return min(x) < 0.0
 
-def positive_boundary_normal(x, b_num):
-    n = np.zeros_like(x)
-    n[b_num] = 1.0
-    return n
 ###--------------------------------------------------------------------------
 def none_boundary(x):
-    return np.array([-1.0])
+    return True
 
-def none_boundary_normal(x, b_num):
-    return None
 ###--------------------------------------------------------------------------
+def nonintersection_boundary(x, faces):
+    F = len(faces)
+    for j in range(F):
+        for k in range(j+1, F):
+            if ti.triangle_intersection(t1.get_face(faces[j]), ti.get_face(faces[k])) = True:
+                return False
+    return True
