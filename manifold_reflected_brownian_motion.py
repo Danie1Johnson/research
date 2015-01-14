@@ -18,16 +18,17 @@ class MRBM:
     Simulate a RBM via a Random walk on a manifold.
     """
     
-    def __init__(self, manifold_name, boundary_name, x0, h, scheme, run_args={}, manifold_kwargs={}, boundary_kwargs={}, err_tol=10**-15, Sig=None):
+    def __init__(self, manifold_name, boundary_name, x0, h, scheme, run_kwargs={}, manifold_kwargs={}, boundary_kwargs={}, err_tol=10**-15, Sig=None):
         """
         """
         #print manifold_kwargs
         # Manifold and Boundary functions
         self.c, self.C = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
-        self.boundary, self.boundary_normal = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)
+        #self.boundary, self.boundary_normal = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)
+        self.boundary = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)
         self.manifold_name = manifold_name
         self.boundary_name = boundary_name
-        self.run_args = run_args
+        self.run_args = run_kwargs
         self.manifold_kwargs = manifold_kwargs
         self.boundary_kwargs = boundary_kwargs
 
@@ -59,8 +60,9 @@ class MRBM:
         #self.C = C
         
         # Verify that x0 is in the domain
-        self.N_bounds = len(self.boundary(x0))
-        if np.all(self.boundary(x0)) == False:
+        #self.N_bounds = len(self.boundary(x0))
+        #if np.all(self.boundary(x0)) == False:
+        if self.boundary(x0) == False:
             print "ERROR: x0 not in domain." 
 
     def boundary_check(self, x):

@@ -674,8 +674,9 @@ def face_position(bg_int, face_num, faces, dim=3):
         y_list.append(bg_int.x[dim*v + 1])
     x_list.append(bg_int.x[dim*faces[face_num][0]])
     y_list.append(bg_int.x[dim*faces[face_num][0] + 1])
-
-    return (np.array(x_list), np.array(y_list))
+    x_list = np.array(x_list)
+    y_list = np.array(y_list)
+    return (x_list, y_list)
 
 
 def init_aux(face_lines):
