@@ -606,7 +606,7 @@ def load_bg_int(poly_name, int_num):
     try:
         int_faces = ints[int_num]
     except IndexError:
-        print "ERROR:", poly_name, "does not have a face", int_num
+        print "ERROR:", poly_name, "does not have an intermediate", int_num
         raise
 
     # Reindex vertices in the intermediate.
@@ -660,6 +660,82 @@ def load_bg_int(poly_name, int_num):
 
 
     return N, dim, q0, masses, links, lengths, faces
+
+
+#def load_bg_int(poly_name, int_num):
+#    """
+#    Load information about specified polyhedral intermediate. 
+#    Return information for corresponding linkage.
+#    """
+#
+#    try: 
+#        poly_info = getattr(poly, poly_name)
+#    except AttributeError:
+#        print "ERROR:", poly_name, "not found in polyhedra.py"
+#        raise
+#
+#    verts, face_inds, cents = poly_info()
+#    V, E, F, S, species, f_types, adj_list, dual = get_poly(poly_name)
+#    ints, ids, paths, shell_int, shell_paths, edges, shell_edge = get_bg_ss(poly_name)
+#
+#    try:
+#        int_faces = ints[int_num]
+#    except IndexError:
+#        print "ERROR:", poly_name, "does not have an intermediate", int_num
+#        raise
+#
+#    # Reindex vertices in the intermediate.
+#    v_in_int = np.array([False for k in range(V)])
+#    for k in range(F):
+#        if int_faces[k] != 0:
+#            v_in_int[face_inds[k][0]] = True
+#            v_in_int[face_inds[k][1]] = True
+#            v_in_int[face_inds[k][2]] = True
+#
+#    # Create table for translating between new and old vertex indexing.
+#    old_v_ind_from_new = []
+#    new_v_ind_from_old = []
+#
+#    for v in range(V):
+#        if v_in_int[v] == True:
+#            new_v_ind_from_old.append(len(old_v_ind_from_new)) 
+#            old_v_ind_from_new.append(v)
+#        else:
+#            new_v_ind_from_old.append(-1)
+#
+#    # Create faces, masses, links, and lengths 
+#    N = len(old_v_ind_from_new)
+#    dim = 3
+#    face_inds_new = [[new_v_ind_from_old[face_inds[j][k]] for k in range(3)] for j in range(V) if v_in_int[j]]
+#    q0 = np.array([])
+#    for k in range(N):
+#        for i in range(dim):
+#            q0 = np.hstack((q0,verts[old_v_ind_from_new[k],i]))
+#    masses = np.ones(N)
+#    
+#    links = []
+#    faces = []
+#    for f in range(F):
+#        if int_faces[f] != 0:
+#            new_face = []
+#            for j in range(len(face_inds[f])):
+#                a = face_inds[f][j-1]
+#                b = face_inds[f][j]
+#                a_new = new_v_ind_from_old[a]
+#                b_new = new_v_ind_from_old[b]
+#                mx = max(a_new, b_new)
+#                mn = min(a_new, b_new)
+#                #print hi, links, mn, mx
+#                if ([mn, mx] in links) == False:
+#                    links.append([mn, mx])
+#                new_face.append(b_new)
+#            faces.append(new_face)
+#
+#    lengths = np.array([numpy.linalg.norm(verts[old_v_ind_from_new[links[k][0]],:] - verts[old_v_ind_from_new[links[k][1]],:]) for k in range(len(links))])
+#
+#
+#    return N, dim, q0, masses, links, lengths, faces
+#
 
 def face_position(bg_int, face_num, faces, dim=3):
     """
