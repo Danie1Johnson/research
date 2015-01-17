@@ -14,7 +14,8 @@ def get_boundary(boundary_name, kwargs={}):
         try:
             # For Building Game intermediates. Denoted 'polyname'.
             int_num = kwargs['int_num']
-            n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(boundary_name, int_num)
+            #n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(boundary_name, int_num)
+            q0, links, lengths, faces = bga.load_bg_int(boundary_name, int_num)
             boundary = lambda x: nonintersection_boundary(x, faces)
             return boundary  #, boundary_normal
         except ValueError, IndexError:

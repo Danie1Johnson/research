@@ -587,6 +587,43 @@ def get_tail_rate(t, u, interval_num=10):
     
 
 
+def get_connected_faces(dual_v, int_faces):
+    """
+    Given a list of face indices dual_v of faces meeting at a particular vertex
+    and the inclussion/exclussion vector int_faces indicating which faces are in the int,
+    return a set of sets where each inner set contains the face indices that are edge connected 
+    at the vertex.
+    """
+    face_groups = set()
+    for f in dual_v:
+        if int_faces[f] != 0:
+            face_groups.add(frozenset([f]))
+    for k, f_1 in enumerate(dual_v):
+        f_0 = dual_v[k-1]
+        if int_faces[f_0] != 0 and int_faces[f_1] != 0:
+            fg_0 = None
+            fg_1 = None
+            for fg in face_groups:
+                if f_0 in fg:
+                    fg_0 = fg
+                if f_1 in fg:
+                    fg_1 = fg
+            if fg_0 == fg_1:
+                continue
+            try:
+                fg_new = fg_0.union(fg_1)
+                face_groups.remove(fg_0)
+                face_groups.remove(fg_1)
+                face_groups.add(fg_new)
+            except KeyError:
+                print "ERROR:", fg_0, "or", fg_1, "not found in", face_groups
+                raise
+    return face_groups
+
+def verify_dual_order(dual):
+    ###### NEEDS ADDING?!?!?! ###########
+    return dual
+
 def load_bg_int(poly_name, int_num):
     """
     Load information about specified polyhedral intermediate. 
@@ -602,6 +639,7 @@ def load_bg_int(poly_name, int_num):
     verts, face_inds, cents = poly_info()
     V, E, F, S, species, f_types, adj_list, dual = get_poly(poly_name)
     ints, ids, paths, shell_int, shell_paths, edges, shell_edge = get_bg_ss(poly_name)
+    dual = verify_dual_order(dual)
 
     try:
         int_faces = ints[int_num]
@@ -609,57 +647,36 @@ def load_bg_int(poly_name, int_num):
         print "ERROR:", poly_name, "does not have an intermediate", int_num
         raise
 
-    # Reindex vertices in the intermediate.
-    v_in_int = np.array([False for k in range(V)])
-    for k in range(F):
-        if int_faces[k] != 0:
-            v_in_int[face_inds[k][0]] = True
-            v_in_int[face_inds[k][1]] = True
-            v_in_int[face_inds[k][2]] = True
-
-    # Create table for translating between new and old vertex indexing.
-    old_v_ind_from_new = []
-    new_v_ind_from_old = []
+    # Reindex vertices/
+    face_inds_new = [[None for f in fi] for fi in face_inds]
+    verts_new = []
+    new_V = 0
 
     for v in range(V):
-        if v_in_int[v] == True:
-            new_v_ind_from_old.append(len(old_v_ind_from_new)) 
-            old_v_ind_from_new.append(v)
-        else:
-            new_v_ind_from_old.append(-1)
+        f_groups = get_connected_faces(dual[v], int_faces)
+        for fg in f_groups:
+            verts_new.append(verts[v,:])
+            for f in fg:
+                face_inds_new[f][face_inds[f].index(v)] = new_V
+            new_V += 1
+    verts = np.array(verts_new)
+    x0 = verts.flatten()
 
-    # Create faces, masses, links, and lengths 
-    N = len(old_v_ind_from_new)
-    dim = 3
-    face_inds_new = [[new_v_ind_from_old[face_inds[j][k]] for k in range(3)] for j in range(V) if v_in_int[j]]
-    q0 = np.array([])
-    for k in range(N):
-        for i in range(dim):
-            q0 = np.hstack((q0,verts[old_v_ind_from_new[k],i]))
-    masses = np.ones(N)
+    #print 'A', face_inds_new
+    faces = [f for k, f in enumerate(face_inds_new) if int_faces[k] != 0]
+
+    #print 'B',faces
+    # Make list of links.
+    links = set()
+    for face in faces:
+        #print face
+        for k in range(len(face)):
+            #print '\t', k, face[k], face[k-1]
+            links.add(frozenset([face[k], face[k-1]]))
+    links = [list(link) for link in links]
+    lengths = np.array([numpy.linalg.norm(verts[link[0],:] - verts[link[1],:]) for link in links])
     
-    links = []
-    faces = []
-    for f in range(F):
-        if int_faces[f] != 0:
-            new_face = []
-            for j in range(len(face_inds[f])):
-                a = face_inds[f][j-1]
-                b = face_inds[f][j]
-                a_new = new_v_ind_from_old[a]
-                b_new = new_v_ind_from_old[b]
-                mx = max(a_new, b_new)
-                mn = min(a_new, b_new)
-                #print hi, links, mn, mx
-                if ([mn, mx] in links) == False:
-                    links.append([mn, mx])
-                new_face.append(b_new)
-            faces.append(new_face)
-
-    lengths = np.array([numpy.linalg.norm(verts[old_v_ind_from_new[links[k][0]],:] - verts[old_v_ind_from_new[links[k][1]],:]) for k in range(len(links))])
-
-
-    return N, dim, q0, masses, links, lengths, faces
+    return x0, links, lengths, faces
 
 
 #def load_bg_int(poly_name, int_num):

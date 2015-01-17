@@ -24,7 +24,8 @@ def get_manifold(manifold_name, kwargs={}):
             # For Building Game intermediates. Denoted 'polyname'.
             #[poly_name, int_num_str] = manifold_name.split('__')
             int_num = kwargs['int_num']
-            n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
+            #n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
+            q0, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
             c = lambda x: linkage_c_fun(x, links, lengths)
             C = lambda x: linkage_C_fun(x, links)
             return c, C
