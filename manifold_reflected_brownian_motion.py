@@ -7,10 +7,12 @@ import os
 #import manifold_reflected_brownian_motion as mrbm
 import manifolds as mfs
 import boundaries as bds
+import statistics as sts
+
 #mrbm = reload(mrbm)
 mfs = reload(mfs)
 bds = reload(bds)
-
+sts = reload(sts)
 class MRBM:
     """
     Reflected Brownian Motion
@@ -18,20 +20,41 @@ class MRBM:
     Simulate a RBM via a Random walk on a manifold.
     """
     
-    def __init__(self, manifold_name, boundary_name, x0, h, scheme, run_kwargs={}, manifold_kwargs={}, boundary_kwargs={}, err_tol=10**-15, Sig=None):
+    def __init__(self, 
+                 manifold_name, 
+                 boundary_name, 
+                 x0, 
+                 h, 
+                 scheme, 
+                 stats_name=None, 
+                 run_kwargs={}, 
+                 manifold_kwargs={}, 
+                 boundary_kwargs={}, 
+                 stat_kwargs={}, 
+                 err_tol=10**-15, 
+                 Sig=None):
         """
         """
-        #print manifold_kwargs
         # Manifold and Boundary functions
         self.c, self.C = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
         #self.boundary, self.boundary_normal = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)
         self.boundary = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)
+        
         self.manifold_name = manifold_name
         self.boundary_name = boundary_name
         self.run_args = run_kwargs
         self.manifold_kwargs = manifold_kwargs
         self.boundary_kwargs = boundary_kwargs
-
+        
+        # Statistic functions & variables
+        self.stat_name = stat_name
+        if stat_name != None:
+            self.log_stats = log_stats
+            self.stats = sts.get_stats(stat_name, kwargs=stat_kwargs)
+            self.stat_sums = np.zeros_like(stats(x0))
+            self.stats_log = np.array([self.stats(x0)])
+            self.num_stats = len(self.stats_log)
+    
         # Variables
         self.n = len(x0)
         #print x0
@@ -110,7 +133,7 @@ class MRBM:
                 
     
 
-    def sample(self, N=1, record_trace=True):
+    def sample(self, N=1, record_trace=True, record_stats=True):
         """
         Take a time grid and boundary axis lengths and draw samples according to rejection scheme.
         """
@@ -119,6 +142,9 @@ class MRBM:
         if record_trace == True:
             xs_run = np.zeros((len(T_run), self.n))
             xs_run[0,:] = self.x
+        if record_stats == True:
+            stat_log_run = np.zeros((len(T_run), self.num_stats))
+            stat_log_run[0,:] = self.stats(self.x)
 
         for kt, t in enumerate(T_run[1:]):
             #if self.scheme == 'ref':
@@ -127,12 +153,18 @@ class MRBM:
             self.x = self.new_rejection_sample()
             if record_trace == True:
                 xs_run[kt+1,:] = self.x
+            if record_stats == True:
+                stat_log_run[kt+1,:] = self.x
         self.samples += N        
 
         if record_trace == True:
             self.T = np.hstack((self.T, self.T[-1] + T_run[1:]))
             self.xs = np.vstack((self.xs, xs_run[1:,:]))
 
+        if stats != None:
+            self.stats_sum += self.stats(self.x)
+            if record_stats == True:
+                self.stat_log = np.vstack((self.stat_log, stat_log_run[1:,:]))
         return self.x
 
     def new_rejection_sample(self):
