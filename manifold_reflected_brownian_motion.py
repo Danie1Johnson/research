@@ -147,9 +147,6 @@ class MRBM:
             stat_log_run[0,:] = self.stats(self.x)
 
         for kt, t in enumerate(T_run[1:]):
-            #if self.scheme == 'ref':
-            #    self.x = self.new_reflection_sample()
-            #else:
             self.x = self.new_rejection_sample()
             if record_trace == True:
                 xs_run[kt+1,:] = self.x
