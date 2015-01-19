@@ -77,7 +77,7 @@ def signed_dihedral_angle(x, v0, v1a, v1b, v2):
 
     n = np.cross(x[3*v1a:3*v1a+3] - x[3*v0:3*v0+3], x[3*v1b:3*v1b+3] - x[3*v0:3*v0+3]) 
     theta = np.arccos(ans)
-    if np.dot(x[3*v2:3*v2+3], n) > 0.0:
+    if np.dot(x[3*v2:3*v2+3] - x[3*v0:3*v0+3], n) > 0.0:
         return theta
     else:
         return 2.0*np.pi - theta
