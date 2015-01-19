@@ -25,8 +25,7 @@ class MRBM:
                  boundary_name, 
                  x0, 
                  h, 
-                 scheme, 
-                 stats_name=None, 
+                 stat_name=None, 
                  run_kwargs={}, 
                  manifold_kwargs={}, 
                  boundary_kwargs={}, 
@@ -49,11 +48,11 @@ class MRBM:
         # Statistic functions & variables
         self.stat_name = stat_name
         if stat_name != None:
-            self.log_stats = log_stats
-            self.stats = sts.get_stats(stat_name, kwargs=stat_kwargs)
-            self.stat_sums = np.zeros_like(stats(x0))
-            self.stats_log = np.array([self.stats(x0)])
-            self.num_stats = len(self.stats_log)
+            #self.log_stats = log_stats
+            self.stat = sts.get_stat(stat_name, kwargs=stat_kwargs)
+            self.stat_sum = np.zeros_like(self.stat(x0))
+            self.stat_log = np.array([self.stat(x0)])
+            self.num_stats = len(self.stat(x0))
     
         # Variables
         self.n = len(x0)
@@ -74,8 +73,7 @@ class MRBM:
             self.Sig = Sig
         self.Sig_inv = numpy.linalg.inv(self.Sig)
         self.B = numpy.random.uniform(size=(self.n,self.m))
-        self.scheme = scheme
-
+        
         ## Functions
         #self.boundary = boundary
         #self.boundary_normal = boundary_normal
@@ -144,24 +142,25 @@ class MRBM:
             xs_run[0,:] = self.x
         if record_stats == True:
             stat_log_run = np.zeros((len(T_run), self.num_stats))
-            stat_log_run[0,:] = self.stats(self.x)
+            stat_log_run[0,:] = self.stat(self.x)
 
         for kt, t in enumerate(T_run[1:]):
             self.x = self.new_rejection_sample()
             if record_trace == True:
                 xs_run[kt+1,:] = self.x
-            if record_stats == True:
-                stat_log_run[kt+1,:] = self.x
+            if self.stat != None:
+                self.stat_sum += self.stat(self.x)
+                if record_stats == True:
+                    stat_log_run[kt+1,:] = self.stat(self.x)
         self.samples += N        
 
         if record_trace == True:
             self.T = np.hstack((self.T, self.T[-1] + T_run[1:]))
             self.xs = np.vstack((self.xs, xs_run[1:,:]))
 
-        if stats != None:
-            self.stats_sum += self.stats(self.x)
-            if record_stats == True:
-                self.stat_log = np.vstack((self.stat_log, stat_log_run[1:,:]))
+        if record_stats == True:
+            self.stat_log = np.vstack((self.stat_log, stat_log_run[1:,:]))
+        
         return self.x
 
     def new_rejection_sample(self):
@@ -286,7 +285,7 @@ class MRBM:
         for a in self.boundary_kwargs.items():
             pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
         pstr += "h_" + parm_to_str(self.h) + "_"
-        pstr += self.scheme + "_"
+        #pstr += self.scheme + "_"
         if N != None:
             pstr += "N_" + str(N)
         if M != None:
