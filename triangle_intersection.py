@@ -75,11 +75,25 @@ def check_interval_intersection(t1a, t1b, t2a, t2b):
     else:
         return False
 
-def triangle_intersection(V1, V2):
+def rescale_triangle(V, scale):
+    """
+    Take triangle V and rescale each point by a factor of scale 
+    toward the triangle's center of mass.
+    """
+    C = np.tile(V.mean(axis=0), (3,1))
+    return C + scale*(V - C)
+    
+
+def triangle_intersection(V1, V2, scaling=1.0):
     """
     Check for intersection between two triangles sitting in R^3.
     V1 and V2 are 3x3 ndarrays with each row a vertex.
     """
+
+    # Rescale triangles to avoid edge or corner touching.
+    V1 = rescale_triangle(V1, scaling)
+    V2 = rescale_triangle(V2, scaling)
+
     ### From Moller 1997
     # Compute plane equation of triangle 2.
     N2, d2 = get_plane_equation(V2)

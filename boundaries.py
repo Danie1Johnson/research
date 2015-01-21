@@ -5,6 +5,9 @@ import numpy as np
 import triangle_intersection as ti
 import bga_4_0 as bga
 
+#ti = reload(ti)
+#bga = reload(bga)
+
 def get_boundary(boundary_name, kwargs={}):
     try:
         b_fun = globals()[boundary_name+"_boundary"]
@@ -36,6 +39,6 @@ def nonintersection_boundary(x, faces):
     F = len(faces)
     for j in range(F):
         for k in range(j+1, F):
-            if ti.triangle_intersection(ti.get_face(x, faces[j]), ti.get_face(x, faces[k])) == True:
+            if ti.triangle_intersection(ti.get_face(x, faces[j]), ti.get_face(x, faces[k]), scaling=0.99) == True:
                 return False
     return True
