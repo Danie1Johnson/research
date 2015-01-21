@@ -204,26 +204,28 @@ class MRBM:
         v /= numpy.linalg.norm(v)
         y = x + self.d**0.5*self.h*v 
 
-        while True:
+        x_prop = None
+        while x_prop == None:
             gamma_sol = None
             while gamma_sol == None:
                 # Check if xp within boundary.
-                while self.boundary(y) == False or (self.boundary_name != 'none'
-                                                    and self.dihedral_switch(y) == True):
-                    alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
-                    v = np.dot(Q2,alpha)
-                    v /= numpy.linalg.norm(v)
-                    y = x + self.d**0.5*self.h*v 
+                #while self.boundary(y) == False or (self.boundary_name != 'none'
+                #and self.dihedral_switch(y) == True):
+                alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
+                v = np.dot(Q2,alpha)
+                v /= numpy.linalg.norm(v)
+                y = x + self.d**0.5*self.h*v 
 
                 # Project back to M
                 gamma = np.zeros(self.n-self.m)
                 F = lambda gam: self.c(y + np.dot(Q1,gam))
                 J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
                 gamma_sol = Newton(gamma, F, J, self.err_tol)
-            x = y + np.dot(Q1,gamma_sol)
-            if self.boundary_name == 'none' or self.dihedral_switch(x) == False:
-                break
-        return x
+            x_prop = y + np.dot(Q1,gamma_sol)
+            if self.boundary(x_prop) == False or (self.boundary_name != 'none' and self.dihedral_switch(x_prop) == True):
+                x_prop = None
+
+        return x_prop
 
     def order_verts(self, v1, v2):
         """
@@ -242,8 +244,11 @@ class MRBM:
         """
         new_dihedrals = self.get_dihedrals(y)
 
-        if min((self.dihedrals - np.pi)*(new_dihedrals - np.pi)) < -1.0:
+        #if min((self.dihedrals - np.pi)*(new_dihedrals - np.pi)) < -1.0:
+        
+        if max(abs(new_dihedrals - self.dihedrals)) > 2.0:
             return True
+            #return False
         else:
             return False
 
