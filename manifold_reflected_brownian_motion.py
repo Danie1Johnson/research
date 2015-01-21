@@ -204,23 +204,25 @@ class MRBM:
         v /= numpy.linalg.norm(v)
         y = x + self.d**0.5*self.h*v 
 
-        gamma_sol = None
-        while gamma_sol == None:
-            # Check if xp within boundary.
-            while self.boundary(y) == False or (self.boundary_name != 'none'
-                                                and self.dihedral_switch(y) == True):
-                alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
-                v = np.dot(Q2,alpha)
-                v /= numpy.linalg.norm(v)
-                y = x + self.d**0.5*self.h*v 
+        while True:
+            gamma_sol = None
+            while gamma_sol == None:
+                # Check if xp within boundary.
+                while self.boundary(y) == False or (self.boundary_name != 'none'
+                                                    and self.dihedral_switch(y) == True):
+                    alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
+                    v = np.dot(Q2,alpha)
+                    v /= numpy.linalg.norm(v)
+                    y = x + self.d**0.5*self.h*v 
 
-            # Project back to M
-            gamma = np.zeros(self.n-self.m)
-            F = lambda gam: self.c(y + np.dot(Q1,gam))
-            J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
-            gamma_sol = Newton(gamma, F, J, self.err_tol)
-        x = y + np.dot(Q1,gamma_sol)
-
+                # Project back to M
+                gamma = np.zeros(self.n-self.m)
+                F = lambda gam: self.c(y + np.dot(Q1,gam))
+                J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
+                gamma_sol = Newton(gamma, F, J, self.err_tol)
+            x = y + np.dot(Q1,gamma_sol)
+            if self.boundary_name == 'none' or self.dihedral_switch(x) == False:
+                break
         return x
 
     def order_verts(self, v1, v2):
