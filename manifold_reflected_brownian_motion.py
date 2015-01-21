@@ -168,6 +168,10 @@ class MRBM:
                 self.stat_sum += self.stat(self.x)
                 if record_stats == True:
                     stat_log_run[kt+1,:] = self.stat(self.x)
+            if self.boundary_name != 'none':
+                self.dihedrals = self.get_dihedrals(self.x)
+
+
         self.samples += N        
 
         if record_trace == True:
@@ -177,9 +181,6 @@ class MRBM:
         if record_stats == True:
             self.stat_log = np.vstack((self.stat_log, stat_log_run[1:,:]))
         
-        if self.boundary_name != 'none':
-            self.dihedrals = self.get_dihedrals(self.x)
-
         return self.x
 
     def new_rejection_sample(self):
@@ -199,10 +200,10 @@ class MRBM:
 
         # Make step in tangent space.
         #print self.m, self.Sig
-        alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
-        v = np.dot(Q2,alpha)
-        v /= numpy.linalg.norm(v)
-        y = x + self.d**0.5*self.h*v 
+        #alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
+        #v = np.dot(Q2,alpha)
+        #v /= numpy.linalg.norm(v)
+        #y = x + self.d**0.5*self.h*v 
 
         x_prop = None
         while x_prop == None:
@@ -248,7 +249,7 @@ class MRBM:
         
         if max(abs(new_dihedrals - self.dihedrals)) > 2.0:
             return True
-            #return False
+            #return False ### NO NO NO 
         else:
             return False
 
