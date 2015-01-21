@@ -57,28 +57,76 @@ def dihedral_angle(x, v0, v1a, v1b, v2):
     Return the angle between v0, the v1a--v1b midpoint and v2 
     """
 
-    ans = np.dot(x[3*v0:3*v0+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]),
-                 x[3*v2:3*v2+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
-    ans /= numpy.linalg.norm(x[3*v0:3*v0+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
-    ans /= numpy.linalg.norm(x[3*v2:3*v2+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+    #ans = np.dot(x[3*v0:3*v0+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]),
+    #             x[3*v2:3*v2+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+    #ans /= numpy.linalg.norm(x[3*v0:3*v0+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+    #ans /= numpy.linalg.norm(x[3*v2:3*v2+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+
+
 
     return np.arccos(ans)
 
+
+#def find_dihedrals(f1, f2, x, faces):
+#    """
+#    Take the index of two faces of a BG intermediate and compute the dihedral angle between them
+#    """
+#    n1 = triangle_normal(f1, x, faces)
+#    n2 = triangle_normal(f2, x, faces)
+#    return np.arccos(np.dot(n1, n2))
+#
+#def triangle_normal(f, x, faces):
+#    """
+#    Find normal vector to triangle. 
+#    """
+#    v1 = x[3*faces[f][0]:3*faces[f][0]+3] - x[3*faces[f][1]:3*faces[f][1]+3] 
+#    v2 = x[3*faces[f][2]:3*faces[f][2]+3] - x[3*faces[f][1]:3*faces[f][1]+3] 
+#    n = np.cross(v1, v2)
+#    return n/numpy.linalg.norm(n)
+
+
+def triangle_normal(x, va, vb, vc):
+    """
+    Find the normal vector at va
+    """ 
+    return np.cross(x[3*vb:3*vb+3] - x[3*va:3*va+3], x[3*vc:3*vc+3] - x[3*va:3*va+3]) 
 
 def signed_dihedral_angle(x, v0, v1a, v1b, v2):
     """
     Return the angle between v0, the v1a--v1b midpoint and v2 
     """
+    # Triangle normals at v1a
+    n1 = triangle_normal(x, v1a, v1b, v0)
+    n2 = triangle_normal(x, v1a, v1b, v2)
 
-    ans = np.dot(x[3*v0:3*v0+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]),
-                 x[3*v2:3*v2+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
-    ans /= numpy.linalg.norm(x[3*v0:3*v0+3] -0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
-    ans /= numpy.linalg.norm(x[3*v2:3*v2+3] -0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+    ans = np.arccos(np.dot(n1, n2)/(numpy.linalg.norm(n1)*numpy.linalg.norm(n2)))
 
-    n = np.cross(x[3*v1a:3*v1a+3] - x[3*v0:3*v0+3], x[3*v1b:3*v1b+3] - x[3*v0:3*v0+3]) 
-    theta = np.arccos(ans)
-    if np.dot(x[3*v2:3*v2+3] - x[3*v0:3*v0+3], n) > 0.0:
-        return theta
+    if np.dot(n1, x[3*v2:3*v2+3]- x[3*v1a:3*v1a+3]) > 0:
+        return ans
     else:
-        return 2.0*np.pi - theta
+        return 2.0*np.pi - ans
+
+#def signed_dihedral_angle(x, v0, v1a, v1b, v2):
+#    """
+#    Return the angle between v0, the v1a--v1b midpoint and v2 
+#    """
+#
+#    print v0, v1a, v1b, v2
+#    print '\t', x[3*v0:3*v0+3]
+#    print '\t', x[3*v1a:3*v1a+3]
+#    print '\t', x[3*v1b:3*v1b+3]
+#    print '\t', x[3*v2:3*v2+3]
+#    print '\t', 0.5*(x[3*v1a:3*v1a+3] - x[3*v1b:3*v1b+3])
+#    
+#    ans = np.dot(x[3*v0:3*v0+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]),
+#                 x[3*v2:3*v2+3] - 0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+#    ans /= numpy.linalg.norm(x[3*v0:3*v0+3] -0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+#    ans /= numpy.linalg.norm(x[3*v2:3*v2+3] -0.5*(x[3*v1a:3*v1a+3] + x[3*v1b:3*v1b+3]))
+#
+#    n = np.cross(x[3*v1a:3*v1a+3] - x[3*v0:3*v0+3], x[3*v1b:3*v1b+3] - x[3*v0:3*v0+3]) 
+#    theta = np.arccos(ans)
+#    if np.dot(x[3*v2:3*v2+3] - x[3*v0:3*v0+3], n) > 0.0:
+#        return theta
+#    else:
+#        return 2.0*np.pi - theta
     
