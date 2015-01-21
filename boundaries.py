@@ -35,10 +35,16 @@ def none_boundary(x):
     return True
 
 ###--------------------------------------------------------------------------
+
+def adjacent_faces(j, k, faces):
+    return len(set(faces[j]).intersection(set(faces[k]))) == 2
+ 
 def nonintersection_boundary(x, faces):
     F = len(faces)
     for j in range(F):
         for k in range(j+1, F):
+            if adjacent_faces(j, k, faces) == True:
+                 continue
             if ti.triangle_intersection(ti.get_face(x, faces[j]), ti.get_face(x, faces[k]), scaling=0.99) == True:
                 return False
     return True
