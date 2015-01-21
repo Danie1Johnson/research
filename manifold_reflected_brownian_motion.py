@@ -8,11 +8,15 @@ import os
 import manifolds as mfs
 import boundaries as bds
 import statistics as sts
+import bga_4_0 as bga
 
 #mrbm = reload(mrbm)
 mfs = reload(mfs)
 bds = reload(bds)
 sts = reload(sts)
+#bga = reload(bga)
+
+
 class MRBM:
     """
     Reflected Brownian Motion
@@ -73,7 +77,19 @@ class MRBM:
             self.Sig = Sig
         self.Sig_inv = numpy.linalg.inv(self.Sig)
         self.B = numpy.random.uniform(size=(self.n,self.m))
-        
+
+        ### Handle BG vs not, better 
+        if self.boundary_name != 'none':
+            self.dihedral_inds = []
+            self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_name, manifold_kwargs['int_num'])
+            F = len(self.faces)
+            for j in range(F):
+                for k in range(j+1, F):
+                    if bds.adjacent_faces(j, k, self.faces) == True:
+                        self.dihedral_inds.append(self.order_verts(self.faces[j], self.faces[k]))
+            self.dihedrals = self.get_dihedrals(x0)
+
+
         ## Functions
         #self.boundary = boundary
         #self.boundary_normal = boundary_normal
@@ -86,12 +102,12 @@ class MRBM:
         if self.boundary(x0) == False:
             print "ERROR: x0 not in domain." 
 
-    def boundary_check(self, x):
-        """
-        For each f(x) < 0.0 constraint in domain, return list of bounds not satisfied.
-        """
-
-        return np.where(self.boundary(x) > 0)[0]
+    #def boundary_check(self, x):
+    #    """
+    #    For each f(x) < 0.0 constraint in domain, return list of bounds not satisfied.
+    #    """
+    #
+    #    return np.where(self.boundary(x) > 0)[0]
     
 
     #def find_boundary_intersection(self, x, xp, b_num, max_itrs=100):
@@ -161,6 +177,9 @@ class MRBM:
         if record_stats == True:
             self.stat_log = np.vstack((self.stat_log, stat_log_run[1:,:]))
         
+        if self.boundary_name != 'none':
+            self.dihedrals = self.get_dihedrals(self.x)
+
         return self.x
 
     def new_rejection_sample(self):
@@ -188,7 +207,8 @@ class MRBM:
         gamma_sol = None
         while gamma_sol == None:
             # Check if xp within boundary.
-            while self.boundary(y) == False:
+            while self.boundary(y) == False or (self.boundary_name != 'none'
+                                                and self.dihedral_switch(y) == True):
                 alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
                 v = np.dot(Q2,alpha)
                 v /= numpy.linalg.norm(v)
@@ -203,6 +223,36 @@ class MRBM:
 
         return x
 
+    def order_verts(self, v1, v2):
+        """
+        get order of vert inds for dihedral calculation.
+        """
+        common_verts = set(v1).intersection(set(v2))
+        ordered_verts = [list(set(v1).difference(common_verts))[0],
+                         list(common_verts)[0],
+                         list(common_verts)[1],
+                         list(set(v2).difference(common_verts))[0]]
+        return ordered_verts
+
+    def dihedral_switch(self, y):
+        """
+        Compare the dihedrals of proposal point y with self.x and check for sign change. 
+        """
+        new_dihedrals = self.get_dihedrals(y)
+
+        if min((self.dihedrals - np.pi)*(new_dihedrals - np.pi)) < -1.0:
+            return True
+        else:
+            return False
+
+    def get_dihedrals(self, y):
+        """
+        Compure the dihedral angles at y.
+        """
+        dihedrals = []
+        for di in self.dihedral_inds:
+            dihedrals.append(sts.signed_dihedral_angle(y, di[0], di[1], di[2], di[3]))
+        return np.array(dihedrals)
 
     #def new_reflection_sample(self):
     #    """
@@ -404,3 +454,8 @@ def parm_to_str(x, dec_len=4):
 
         x_str = str(x)    
         return x_str[0]+"_"+x_str[2:min(2+dec_len,len(x_str))]
+
+
+
+
+
