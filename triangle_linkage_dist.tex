@@ -1,0 +1,103 @@
+\title{Distribution of Angle between Two Linked Triangles}
+\author{
+        Daniel Johnson \\
+                Division of Applied Mathematics\\
+        Brown University
+}
+\date{\today}
+
+\documentclass[12pt]{article}
+
+\usepackage{graphicx,amsfonts,amsbsy,bbm, amsmath}
+\newcommand*{\Scale}[2][4]{\scalebox{#1}{$#2$}}%
+
+\begin{document}
+\maketitle
+\section{One Triangle}
+
+Suppose we have a triangle composed of unit length edges with one edge designated the 'axis'. Fix the midpoint of this axis at the origin. Then, the endpoints of the axis lie at opposite ends of the sphere with radius $1/2$. We use sphedica coordinates to parameterize the axis $[-u(\phi,\omega),u(\phi,\omega)]$.
+\begin{align}
+u(\phi,\omega) &= \left(\frac{1}{2}\cos(\phi),\frac{1}{2}\sin(\phi)\cos(\omega), \frac{1}{2}\sin(\phi)\sin(\omega) \right)
+\end{align}
+Now for a particular choice of $u$ we wish to parameterize the loci $v : |v - u| = |v + u| = 1$ which correspond to the set of possible points that (along with $u$ and $-u$) would form a unit equilateral triangle. Let $v^0$ be such a point. Then, the remaining locus points can be parameterized as $v = R(u, \theta)v^0$ where $R$ is the rotation matrix that rotates points along the axis $u$ by $\theta$.
+\begin{align}
+R &= \Scale[0.75]{\begin{bmatrix} \cos \theta + 4u_x^2 \left(1-\cos \theta\right) & 4u_x u_y \left(1-\cos \theta\right) - 2u_z \sin \theta & 4u_x u_z \left(1-\cos \theta\right) + 2u_y \sin \theta \\ 4u_y u_x \left(1-\cos \theta\right) + 2u_z \sin \theta & \cos \theta + 4u_y^2\left(1-\cos \theta\right) & 4u_y u_z \left(1-\cos \theta\right) - 2u_x \sin \theta \\ 4u_z u_x \left(1-\cos \theta\right) - 2u_y \sin \theta   & 4u_z u_y \left(1-\cos \theta\right) + 2u_x \sin \theta & \cos \theta + 4u_z^2\left(1-\cos \theta\right) 
+\end{bmatrix}}
+\end{align}
+
+Parameterization
+\begin{align}
+  f(\phi, \omega, \theta) &= \begin{bmatrix} u \\ -u \\ v \end{bmatrix} \\
+  Df(\phi, \omega, \theta) &= \begin{bmatrix} Du \\ -Du \\ Dv \end{bmatrix} \\
+  \left(Df\right)^TDf &=   2\left(Du\right)^TDu  + \left(Dv\right)^TDv
+\end{align}
+
+\begin{align}
+  Du(\phi, \omega, \theta) &= \begin{bmatrix} -\frac{1}{2}\sin\phi & 0 & 0 \\ \frac{1}{2}\cos\phi\cos\omega & -\frac{1}{2}\sin\phi\sin\omega & 0 \\  \frac{1}{2}\cos\phi\sin\omega & \frac{1}{2}\sin\phi\cos\omega & 0\end{bmatrix} \\
+  \left(Du\right)^TDu &= \Scale[0.60]{\begin{bmatrix} 
+\frac{1}{4}\sin^2\phi + \frac{1}{4}\cos^2\phi\cos^2\omega+ \frac{1}{4}\cos^2\phi\sin^2\omega
+&  \frac{1}{4}\cos\phi\cos\omega\sin\phi\sin\omega - \frac{1}{4}\cos\phi\cos\omega\sin\phi\sin\omega 
+& 0 
+\\ \frac{1}{4}\cos\phi\cos\omega\sin\phi\sin\omega - \frac{1}{4}\cos\phi\cos\omega\sin\phi\sin\omega 
+& \frac{1}{4}\sin^2\phi\sin^2\omega + \frac{1}{4}\sin^2\phi\cos^2\omega
+& 0
+\\ 0
+& 0
+& 0 \end{bmatrix}} \\
+  \left(Du\right)^TDu &= \Scale[0.60]{\begin{bmatrix} 
+\frac{1}{4}
+& 0
+& 0 
+\\ 0 
+& \frac{1}{4}\sin^2\phi
+& 0
+\\ 0
+& 0
+& 0 \end{bmatrix}}
+\end{align} \\
+
+
+\begin{align}
+Dv(\phi, \omega, \theta) &= \Scale[1.0]{\begin{bmatrix}
+\frac{\partial R}{\partial\phi}v^0 & \frac{\partial R}{\partial\omega}v^0 & \frac{\partial R}{\partial\theta}v^0 
+\end{bmatrix}}
+\end{align}
+
+\begin{align}
+\frac{\partial R}{\partial\phi} &= \Scale[0.60]{\begin{bmatrix}  
+8u_x\frac{\partial u_x}{\partial\phi} \left(1-\cos \theta\right) 
+& 4(u_x\frac{\partial u_y}{\partial\phi} +  u_y\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_z}{\partial\phi} \sin \theta 
+& 4(u_x\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_y}{\partial\phi} \sin \theta 
+\\ 4(u_x\frac{\partial u_y}{\partial\phi} +  u_y\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_z}{\partial\phi} \sin \theta 
+& 8u_y\frac{\partial u_y}{\partial\phi} \left(1-\cos \theta\right) 
+& 4(u_y\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_y}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_x}{\partial\phi} \sin \theta 
+\\ 4(u_x\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_y}{\partial\phi} \sin \theta 
+& 4(u_y\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_y}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_x}{\partial\phi} \sin \theta 
+& 8u_z\frac{\partial u_z}{\partial\phi} \left(1-\cos \theta\right) \end{bmatrix}} \\
+\frac{\partial R}{\partial\omega} &= \Scale[0.60]{\begin{bmatrix}  
+8u_x\frac{\partial u_x}{\partial\omega} \left(1-\cos \theta\right) 
+& 4(u_x\frac{\partial u_y}{\partial\omega} +  u_y\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_z}{\partial\omega} \sin \theta 
+& 4(u_x\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_y}{\partial\omega} \sin \theta 
+\\ 4(u_x\frac{\partial u_y}{\partial\omega} +  u_y\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_z}{\partial\omega} \sin \theta 
+& 8u_y\frac{\partial u_y}{\partial\omega} \left(1-\cos \theta\right) 
+& 4(u_y\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_y}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_x}{\partial\omega} \sin \theta 
+\\ 4(u_x\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_y}{\partial\omega} \sin \theta 
+& 4(u_y\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_y}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_x}{\partial\omega} \sin \theta 
+& 8u_z\frac{\partial u_z}{\partial\omega} \left(1-\cos \theta\right) \end{bmatrix}} \\
+\frac{\partial R}{\partial\theta} &= \Scale[0.75]{\begin{bmatrix} 
+-\sin \theta + 4u_x^2 \sin \theta 
+& 4u_x u_y \sin \theta - 2u_z \cos \theta 
+& 4u_x u_z \sin \theta + 2u_y \cos \theta 
+\\ 4u_y u_x \sin \theta + 2u_z \cos \theta 
+& -\sin \theta + 4u_y^2\sin \theta 
+& 4u_y u_z \sin \theta - 2u_x \cos \theta 
+\\ 4u_z u_x \sin \theta - 2u_y \cos \theta   
+& 4u_z u_y \sin \theta + 2u_x \cos \theta 
+& -\sin \theta + 4u_z^2\sin \theta 
+\end{bmatrix}} 
+\end{align}
+
+
+
+\end{document}
+
