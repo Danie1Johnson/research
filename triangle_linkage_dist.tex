@@ -77,12 +77,71 @@ Dv(\phi, \omega, \theta) &= \Scale[1.0]{\begin{bmatrix}
 \end{align}
 
 \begin{align}
-\frac{\partial u}{\partial\phi}u^T &= \Scale[1.0]{\begin{bmatrix}
+\frac{\partial u}{\partial\phi}u^T &= \frac{1}{4}\Scale[1.0]{\begin{bmatrix}
 -\cos\phi\sin\phi & \cos^2\phi\cos\omega & \cos^2\phi\sin\omega \\
 -\sin^2\phi\cos\omega & \sin\phi\cos\phi\cos^2\omega & \sin\phi\cos\phi\sin\omega\cos\omega \\
 -\sin^2\phi\sin\omega & \sin\phi\cos\phi\sin\omega\cos\omega  & \sin\phi\cos\phi\sin^2\omega
-\end{bmatrix} 
+\end{bmatrix}} \\
+u\frac{\partial u^T}{\partial\phi} + \frac{\partial u}{\partial\phi}u^T &= \frac{1}{4}\Scale[1.0]{\begin{bmatrix}
+-\sin 2\phi & \cos 2\phi \cos\omega & \cos 2\phi\sin\omega \\
+\cos 2\phi\omega & \sin 2\phi\cos^2\omega & \sin 2\phi\sin 2\omega \\
+\cos 2\phi\sin\omega & \sin 2\phi\sin 2\omega & \sin 2\phi\sin^2\omega 
+\end{bmatrix}} 
 \end{align}
+
+\begin{align}
+\frac{\partial u}{\partial\omega}u^T &= \frac{1}{4}\Scale[1.0]{\begin{bmatrix}
+0 & -\sin\phi\cos\phi\sin\omega & \sin\phi\cos\phi\cos\omega \\
+0 & -\sin^2\phi\sin\omega\cos\omega & \sin^2\phi\cos^2\omega \\
+0 & -\sin^2\phi\sin^2\omega & \sin^2\phi\sin\omega\cos\omega
+\end{bmatrix}} \\
+u\frac{\partial u^T}{\partial\omega} + \frac{\partial u}{\partial\omega}u^T &= \frac{1}{4}\Scale[1.0]{\begin{bmatrix}
+0 & -\sin\phi\cos\phi\sin\omega & \sin\phi\cos\phi\cos\omega \\
+-\sin\phi\cos\phi\sin\omega & -\sin^2\phi\sin 2\omega & \sin^2\phi\cos 2\omega \\
+\sin\phi\cos\phi\cos\omega & \sin^2\phi\cos 2\omega & \sin^2\phi\sin 2\omega
+\end{bmatrix}} 
+\end{align}
+
+\begin{align}
+uu^T &= \frac{1}{4}\Scale[1.0]{\begin{bmatrix}
+\cos^2\phi & \sin\phi\cos\phi\cos\omega & \sin\phi\cos\phi\sin\omega \\
+\sin\phi\cos\phi\cos\omega & \sin^2\phi\cos^2\omega & \sin^2\phi\sin\omega\cos\omega \\
+\sin\phi\cos\phi\sin\omega & \sin^2\phi\sin\omega\cos\omega & \sin^2\phi\sin^2\omega
+\end{bmatrix}} 
+\end{align}
+
+\begin{align}
+[u]_\times &= \frac{1}{2}\Scale[1.0]{\begin{bmatrix}
+0 & -\sin\phi\sin\omega & \sin\phi\cos\omega \\
+\sin\phi\sin\omega & 0 & -\cos\phi \\
+-\sin\phi\cos\omega & \cos\phi & 0
+\end{bmatrix}} 
+\end{align}
+
+\begin{align}
+\frac{\partial[u]_\times}{\partial\phi} &= \frac{1}{2}\Scale[1.0]{\begin{bmatrix}
+0 & -\cos\phi\sin\omega & \cos\phi\cos\omega \\
+\cos\phi\sin\omega & 0 & \sin\phi \\
+-\cos\phi\cos\omega & -\sin\phi & 0
+\end{bmatrix}} 
+\end{align}
+
+\begin{align}
+\frac{\partial[u]_\times}{\partial\omega} &= \frac{1}{2}\Scale[1.0]{\begin{bmatrix}
+0 & -\sin\phi\cos\omega & -\sin\phi\sin\omega \\
+\sin\phi\cos\omega & 0 & 0 \\
+\sin\phi\sin\omega & 0 & 0
+\end{bmatrix}} 
+\end{align}
+
+\begin{align}
+(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\theta} &=  (-\sin\theta I + 4\sin\theta uu^T + 2\cos\theta[u]_\times)^T(-\sin\theta I + 4\sin\theta uu^T + 2\cos\theta[u]_\times) \\
+%  &=  \sin^2\theta I - 4\sin^2\theta uu^T - 2\sin\theta\cos\theta[u]_\times - 4\sin^2\theta uu^T + 16\sin^2uu^Tuu^T+ 8\sin\theta\cos\theta uu^T\theta[u]_\times - 2\sin\theta\cos\theta[u]_\times^T + 8\sin\theta\cos\theta \theta[u]_\times^T uu^T  + 4\cos^2 \theta[u]_\times^T\theta[u]_\times  
+  &=  \sin^2\theta I - 8\sin^2\theta uu^T  + 16\sin^2uu^Tuu^T  + 4\cos^2 \theta[u]_\times^T\theta[u]_\times  
+\end{align}
+
+
+
 
 %\begin{align}
 %\frac{\partial R}{\partial\phi} &= \Scale[0.60]{\begin{bmatrix}  
