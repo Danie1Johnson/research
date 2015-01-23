@@ -70,12 +70,19 @@ Dv(\phi, \omega, \theta) &= \Scale[1.0]{\begin{bmatrix}
 
 
 \begin{align}
-  R &= \cos\theta I + (1-\cos\theta)uu^T + \sin\theta[u]_\times \\
-  \frac{\partial R}{\partial\phi} &= (1-\cos\theta)(u\frac{\partial u^T}{\partial\phi} + \frac{\partial u}{\partial\phi}u^T) + \sin\theta\frac{\partial [u]_\times}{\partial\phi} \\ 
-  \frac{\partial R}{\partial\omega} &= (1-\cos\theta)(u\frac{\partial u^T}{\partial\omega} + \frac{\partial u}{\partial\omega}u^T) + \sin\theta\frac{\partial [u]_\times}{\partial\omega}  \\
-  \frac{\partial R}{\partial\theta} &= -\sin\theta I + \sin\theta uu^T + \cos\theta[u]_\times \\
+  R &= \cos\theta I + 4(1-\cos\theta)uu^T + 2\sin\theta[u]_\times \\
+  \frac{\partial R}{\partial\phi} &= 4(1-\cos\theta)(u\frac{\partial u^T}{\partial\phi} + \frac{\partial u}{\partial\phi}u^T) + 2\sin\theta\frac{\partial [u]_\times}{\partial\phi} \\ 
+  \frac{\partial R}{\partial\omega} &= 4(1-\cos\theta)(u\frac{\partial u^T}{\partial\omega} + \frac{\partial u}{\partial\omega}u^T) + 2\sin\theta\frac{\partial [u]_\times}{\partial\omega}  \\
+  \frac{\partial R}{\partial\theta} &= -\sin\theta I + 4\sin\theta uu^T + 2\cos\theta[u]_\times \\
 \end{align}
 
+\begin{align}
+\frac{\partial u}{\partial\phi}u^T &= \Scale[1.0]{\begin{bmatrix}
+-\cos\phi\sin\phi & \cos^2\phi\cos\omega & \cos^2\phi\sin\omega \\
+-\sin^2\phi\cos\omega & \sin\phi\cos\phi\cos^2\omega & \sin\phi\cos\phi\sin\omega\cos\omega \\
+-\sin^2\phi\sin\omega & \sin\phi\cos\phi\sin\omega\cos\omega  & \sin\phi\cos\phi\sin^2\omega
+\end{bmatrix} 
+\end{align}
 
 %\begin{align}
 %\frac{\partial R}{\partial\phi} &= \Scale[0.60]{\begin{bmatrix}  
