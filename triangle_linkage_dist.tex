@@ -60,42 +60,56 @@ Parameterization
 \begin{align}
 Dv(\phi, \omega, \theta) &= \Scale[1.0]{\begin{bmatrix}
 \frac{\partial R}{\partial\phi}v^0 & \frac{\partial R}{\partial\omega}v^0 & \frac{\partial R}{\partial\theta}v^0 
+\end{bmatrix}} \\
+\left(Dv\right)^TDv &= \Scale[1.0]{\begin{bmatrix}
+(v^0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\phi}v^0 & (v^0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\omega}v^0 & (v^0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\theta}v^0 \\
+(v^0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\phi}v^0 & (v^0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\omega}v^0 & (v^0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\theta}v^0 \\ 
+    (v^0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\phi}v^0 & (v^0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\omega}v^0 & (v^0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\theta}v^0 
 \end{bmatrix}}
 \end{align}
 
+
 \begin{align}
-\frac{\partial R}{\partial\phi} &= \Scale[0.60]{\begin{bmatrix}  
-8u_x\frac{\partial u_x}{\partial\phi} \left(1-\cos \theta\right) 
-& 4(u_x\frac{\partial u_y}{\partial\phi} +  u_y\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_z}{\partial\phi} \sin \theta 
-& 4(u_x\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_y}{\partial\phi} \sin \theta 
-\\ 4(u_x\frac{\partial u_y}{\partial\phi} +  u_y\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_z}{\partial\phi} \sin \theta 
-& 8u_y\frac{\partial u_y}{\partial\phi} \left(1-\cos \theta\right) 
-& 4(u_y\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_y}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_x}{\partial\phi} \sin \theta 
-\\ 4(u_x\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_y}{\partial\phi} \sin \theta 
-& 4(u_y\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_y}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_x}{\partial\phi} \sin \theta 
-& 8u_z\frac{\partial u_z}{\partial\phi} \left(1-\cos \theta\right) \end{bmatrix}} \\
-\frac{\partial R}{\partial\omega} &= \Scale[0.60]{\begin{bmatrix}  
-8u_x\frac{\partial u_x}{\partial\omega} \left(1-\cos \theta\right) 
-& 4(u_x\frac{\partial u_y}{\partial\omega} +  u_y\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_z}{\partial\omega} \sin \theta 
-& 4(u_x\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_y}{\partial\omega} \sin \theta 
-\\ 4(u_x\frac{\partial u_y}{\partial\omega} +  u_y\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_z}{\partial\omega} \sin \theta 
-& 8u_y\frac{\partial u_y}{\partial\omega} \left(1-\cos \theta\right) 
-& 4(u_y\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_y}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_x}{\partial\omega} \sin \theta 
-\\ 4(u_x\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_y}{\partial\omega} \sin \theta 
-& 4(u_y\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_y}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_x}{\partial\omega} \sin \theta 
-& 8u_z\frac{\partial u_z}{\partial\omega} \left(1-\cos \theta\right) \end{bmatrix}} \\
-\frac{\partial R}{\partial\theta} &= \Scale[0.75]{\begin{bmatrix} 
--\sin \theta + 4u_x^2 \sin \theta 
-& 4u_x u_y \sin \theta - 2u_z \cos \theta 
-& 4u_x u_z \sin \theta + 2u_y \cos \theta 
-\\ 4u_y u_x \sin \theta + 2u_z \cos \theta 
-& -\sin \theta + 4u_y^2\sin \theta 
-& 4u_y u_z \sin \theta - 2u_x \cos \theta 
-\\ 4u_z u_x \sin \theta - 2u_y \cos \theta   
-& 4u_z u_y \sin \theta + 2u_x \cos \theta 
-& -\sin \theta + 4u_z^2\sin \theta 
-\end{bmatrix}} 
+  R &= \cos\theta I + (1-\cos\theta)uu^T + \sin\theta[u]_\times \\
+  \frac{\partial R}{\partial\phi} &= (1-\cos\theta)(u\frac{\partial u^T}{\partial\phi} + \frac{\partial u}{\partial\phi}u^T) + \sin\theta\frac{\partial [u]_\times}{\partial\phi} \\ 
+  \frac{\partial R}{\partial\omega} &= (1-\cos\theta)(u\frac{\partial u^T}{\partial\omega} + \frac{\partial u}{\partial\omega}u^T) + \sin\theta\frac{\partial [u]_\times}{\partial\omega}  \\
+  \frac{\partial R}{\partial\theta} &= -\sin\theta I + \sin\theta uu^T + \cos\theta[u]_\times \\
 \end{align}
+
+
+%\begin{align}
+%\frac{\partial R}{\partial\phi} &= \Scale[0.60]{\begin{bmatrix}  
+%8u_x\frac{\partial u_x}{\partial\phi} \left(1-\cos \theta\right) 
+%& 4(u_x\frac{\partial u_y}{\partial\phi} +  u_y\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_z}{\partial\phi} \sin \theta 
+%& 4(u_x\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_y}{\partial\phi} \sin \theta 
+%\\ 4(u_x\frac{\partial u_y}{\partial\phi} +  u_y\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_z}{\partial\phi} \sin \theta 
+%& 8u_y\frac{\partial u_y}{\partial\phi} \left(1-\cos \theta\right) 
+%& 4(u_y\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_y}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_x}{\partial\phi} \sin \theta 
+%\\ 4(u_x\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_x}{\partial\phi}) \left(1-\cos \theta\right) - 2\frac{\partial u_y}{\partial\phi} \sin \theta 
+%& 4(u_y\frac{\partial u_z}{\partial\phi} +  u_z\frac{\partial u_y}{\partial\phi}) \left(1-\cos \theta\right) + 2\frac{\partial u_x}{\partial\phi} \sin \theta 
+%& 8u_z\frac{\partial u_z}{\partial\phi} \left(1-\cos \theta\right) \end{bmatrix}} \\
+%\frac{\partial R}{\partial\omega} &= \Scale[0.60]{\begin{bmatrix}  
+%8u_x\frac{\partial u_x}{\partial\omega} \left(1-\cos \theta\right) 
+%& 4(u_x\frac{\partial u_y}{\partial\omega} +  u_y\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_z}{\partial\omega} \sin \theta 
+%& 4(u_x\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_y}{\partial\omega} \sin \theta 
+%\\ 4(u_x\frac{\partial u_y}{\partial\omega} +  u_y\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_z}{\partial\omega} \sin \theta 
+%& 8u_y\frac{\partial u_y}{\partial\omega} \left(1-\cos \theta\right) 
+%& 4(u_y\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_y}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_x}{\partial\omega} \sin \theta 
+%\\ 4(u_x\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_x}{\partial\omega}) \left(1-\cos \theta\right) - 2\frac{\partial u_y}{\partial\omega} \sin \theta 
+%& 4(u_y\frac{\partial u_z}{\partial\omega} +  u_z\frac{\partial u_y}{\partial\omega}) \left(1-\cos \theta\right) + 2\frac{\partial u_x}{\partial\omega} \sin \theta 
+%& 8u_z\frac{\partial u_z}{\partial\omega} \left(1-\cos \theta\right) \end{bmatrix}} \\
+%\frac{\partial R}{\partial\theta} &= \Scale[0.75]{\begin{bmatrix} 
+%-\sin \theta + 4u_x^2 \sin \theta 
+%& 4u_x u_y \sin \theta - 2u_z \cos \theta 
+%& 4u_x u_z \sin \theta + 2u_y \cos \theta 
+%\\ 4u_y u_x \sin \theta + 2u_z \cos \theta 
+%& -\sin \theta + 4u_y^2\sin \theta 
+%& 4u_y u_z \sin \theta - 2u_x \cos \theta 
+%\\ 4u_z u_x \sin \theta - 2u_y \cos \theta   
+%& 4u_z u_y \sin \theta + 2u_x \cos \theta 
+%& -\sin \theta + 4u_z^2\sin \theta 
+%\end{bmatrix}} 
+%\end{align}
 
 
 
