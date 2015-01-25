@@ -14,8 +14,8 @@
 \begin{document}
 \maketitle
 
-\section{One Dimensional Constrsaint Manifold}
-First we consider the case in which one triangle is fixed with the coordinates $(0, 1/2, 0), (0, -1/2, 0), (\sqrt{3}/2, 0, 0)$. The second face will share the vertivies $(0, 1/2, 0)$ and $(0, -1/2, 0)$ and its third vertex $v$ is allowed to vary subject to the constraints of being unit distance from the other vertices. The corresponding constraint space can be described by parameterizing $v$ by $\theta$, the dihedral angle between faces.
+\section{One Dimensional Constraint Manifold}
+First we consider the case in which one triangle is fixed with the coordinates $(0, 1/2, 0), (0, -1/2, 0), (\sqrt{3}/2, 0, 0)$. The second face will share the vertices $(0, 1/2, 0)$ and $(0, -1/2, 0)$ and its third vertex $v$ is allowed to vary subject to the constraints of being unit distance from the other vertices. The corresponding constraint space can be described by parameterizing $v$ by $\theta$, the dihedral angle between faces.
 \begin{align}
 v(\theta) &= \left[\sqrt{3}/2\cos\theta, 0, \sqrt{3}/2\sin\theta\right]^T
 \end{align}
@@ -37,16 +37,16 @@ h(\theta) &\propto \sqrt{\det\left[3/4\right]}\\
 &\propto 1
 \end{align}
 
-\section{Three Dimensional Constrsaint Manifold}
+\section{Three Dimensional Constraint Manifold}
 
-Now we let the common edge rotate about the x-axis while its center remains fixed at the origin. More formally, define the point $u = \left[0, \frac{1}{2}\cos\omega, \frac{1}{2}\sin\omega\right]^T$ in the y-z plane. Then, we parameterize the shared edge by $\omega \in [0, 2\pi)$ with its endpoints being $u(\omega)$ and $-u(\omega)$. Then we use $\theta$ and $\phi$ to parameterize the remaining two verticies $v_1$ and $v_2$ as follows.
+Now we let the common edge rotate about the x-axis while its center remains fixed at the origin. More formally, define the point $u = \left[0, \frac{1}{2}\cos\omega, \frac{1}{2}\sin\omega\right]^T$ in the y-z plane. Then, we parameterize the shared edge by $\omega \in [0, 2\pi)$ with its endpoints being $u(\omega)$ and $-u(\omega)$. Then we use $\theta$ and $\phi$ to parameterize the remaining two vertices $v_1$ and $v_2$ as follows.
 \begin{align}
 v_1 &= \left[\frac{\sqrt{3}}{2}\cos\theta, \frac{\sqrt{3}}{2}\sin\theta\sin\omega, -\frac{\sqrt{3}}{2}\sin\theta\cos\omega\right]^T \\ 
 v_2 &= \left[\frac{\sqrt{3}}{2}\cos(\theta+\phi), \frac{\sqrt{3}}{2}\sin(\theta+\phi)\sin\omega, -\frac{\sqrt{3}}{2}\sin(\theta+\phi)\cos\omega\right]^T 
 \end{align}
-With these paramerizations, it is trivial to verify that the constrains $|u - (-u)| = |v_1 - u| = |v_1 + u| =|v_2 - u| = |v_2 + u| = 1$ are all satisfied for any choice of $(\omega, \theta, \phi)$. Additionally, the dihedral angle between the two triangles is given by $\phi$. 
+With these parameterizations, it is trivial to verify that the constrains $|u - (-u)| = |v_1 - u| = |v_1 + u| =|v_2 - u| = |v_2 + u| = 1$ are all satisfied for any choice of $(\omega, \theta, \phi)$. Additionally, the dihedral angle between the two triangles is given by $\phi$. 
 
-We proceed in deriving the sampling distributions of the 3 parameters that corresponds to uniform sampling of the 3 dimensional constraint manifold embedded in $\mathbbm{R}^{12}$ using the method outlined in Diaconis et al. First we concattenate our parameterizations into a function $f: \mathbbm{R}^3 \to \mathbbm{R}^{12}$ That maps $(\omega, \theta, \phi) \in [0, 2\pi)^3$ onto the constraint manifold. 
+We proceed in deriving the sampling distributions of the 3 parameters that corresponds to uniform sampling of the 3 dimensional constraint manifold embedded in $\mathbbm{R}^{12}$ using the method outlined in Diaconis et al. First we concatenate our parameterizations into a function $f: \mathbbm{R}^3 \to \mathbbm{R}^{12}$ That maps $(\omega, \theta, \phi) \in [0, 2\pi)^3$ onto the constraint manifold. 
 \begin{align}
 f(\omega, \theta, \phi) &= \Scale[1.0]{\begin{bmatrix}
 0 \\ \frac{1}{2}\cos\omega \\ \frac{1}{2}\sin\omega \\ 0 \\ -\frac{1}{2}\cos\omega \\ -\frac{1}{2}\sin\omega \\
@@ -80,26 +80,36 @@ h(\omega, \theta, \phi) &\propto \sqrt{1 + \frac{3}{2}\sin^2\theta + \frac{3}{2}
 
 \section{Four Dimensional Constraint Manifold} 
 
-Suppose we relax the constraints of the previous calculation. Fix the midpoint of the shared edge at the origin, but allow it the freedom to rotate in any direction. Then, the endpoints of the shared edge lie at opposite ends of the sphere with radius $1/2$. We use sphedical coordinates to parameterize the axis $[-u(\phi,\omega),u(\phi,\omega)]$.
+Suppose we relax the constraints of the previous calculation. Fix the midpoint of the shared edge at the origin, but allow it the freedom to rotate in any direction. Then, the endpoints of the shared edge lie at opposite ends of the sphere with radius $1/2$. We use spherical coordinates to parameterize the axis $[-u(\phi,\omega),u(\phi,\omega)]$.
 \begin{align}
 u(\phi,\omega) &= \left(\frac{1}{2}\cos(\phi),\frac{1}{2}\sin(\phi)\cos(\omega), \frac{1}{2}\sin(\phi)\sin(\omega) \right)
 \end{align}
-Now we parameterize the remaining two vertices as $v^1 = R(2u, \theta)v^0$ and $v^2 = R(2u, \theta + \xi)v^0$ where $v^0$ is any fixed point satisfying $|v^0 - u| = |v^0 + u| = 1$ and $R(\hat{u},\hat{\theta})$ is the rotation matrix with unit axis of rotation $\hat{u}$ and angle of rotation $\hat{\theta}$. 
+Now we parameterize the remaining two vertices as $v_1 = R(2u, \theta)v_0$ and $v_2 = R(2u, \theta + \xi)v_0$ where $v_0$ is any fixed point satisfying $|v_0 - u| = |v_0 + u| = 1$ and $R(\hat{u},\hat{\theta})$ is the rotation matrix with unit axis of rotation $\hat{u}$ and angle of rotation $\hat{\theta}$. 
 \begin{align}
-R(2u,\theta) &= \Scale[0.75]{\begin{bmatrix} \cos \theta + 4u_x^2 \left(1-\cos \theta\right) & 4u_x u_y \left(1-\cos \theta\right) - 2u_z \sin \theta & 4u_x u_z \left(1-\cos \theta\right) + 2u_y \sin \theta \\ 4u_y u_x \left(1-\cos \theta\right) + 2u_z \sin \theta & \cos \theta + 4u_y^2\left(1-\cos \theta\right) & 4u_y u_z \left(1-\cos \theta\right) - 2u_x \sin \theta \\ 4u_z u_x \left(1-\cos \theta\right) - 2u_y \sin \theta   & 4u_z u_y \left(1-\cos \theta\right) + 2u_x \sin \theta & \cos \theta + 4u_z^2\left(1-\cos \theta\right) 
-\end{bmatrix}} \\
-&= \cos\theta I + 4(1-\cos\theta)uu^T + 2\sin\theta[u]_\times \\
+v_1 &= R(2u, \theta)v_0 \\
+&= \left(\cos\theta I + 4(1-\cos\theta)uu^T + 2\sin\theta[u]_\times\right)v_0 \\
+&= \cos\theta v_0 + 4(1-\cos\theta)u(u\cdot v_0) + 2\sin\theta (u\times v_0) \\
+&= \cos\theta v_0 + 2\sin\theta (u\times v_0) \\
+v_2 &= R(2u, \theta + \xi)v_0 \\
+&= \cos(\theta+\xi) v_0 + 2\sin(\theta + \xi) (u\times v_0)
 \end{align}
+
+
+%\begin{align}
+%R(2u,\theta) &= \Scale[0.75]{\begin{bmatrix} \cos \theta + 4u_x^2 \left(1-\cos \theta\right) & 4u_x u_y \left(1-\cos \theta\right) - 2u_z \sin \theta & 4u_x u_z \left(1-\cos \theta\right) + 2u_y \sin \theta \\ 4u_y u_x \left(1-\cos \theta\right) + 2u_z \sin \theta & \cos \theta + 4u_y^2\left(1-\cos \theta\right) & 4u_y u_z \left(1-\cos \theta\right) - 2u_x \sin \theta \\ 4u_z u_x \left(1-\cos \theta\right) - 2u_y \sin \theta   & 4u_z u_y \left(1-\cos \theta\right) + 2u_x \sin \theta & \cos \theta + 4u_z^2\left(1-\cos \theta\right) 
+%\end{bmatrix}} \\
+%&= \cos\theta I + 4(1-\cos\theta)uu^T + 2\sin\theta[u]_\times \\
+%\end{align}
 
 Thus, we compute as follows. 
 \begin{align}
-  f(\phi, \omega, \theta, \xi) &= \begin{bmatrix} u \\ -u \\ v^1 \\ v^2 \end{bmatrix} \\
-  Df(\phi, \omega, \theta, \xi) &= \begin{bmatrix} Du \\ -Du \\ Dv^1 \\ Dv^2 \end{bmatrix} \\
-  \left(Df\right)^TDf &=   2\left(Du\right)^TDu  + \left(Dv^1\right)^TDv^1 + \left(Dv^2\right)^TDv^2 
+  f(\phi, \omega, \theta, \xi) &= \begin{bmatrix} u \\ -u \\ v_1 \\ v_2 \end{bmatrix} \\
+  Df(\phi, \omega, \theta, \xi) &= \begin{bmatrix} Du \\ -Du \\ Dv_1 \\ Dv_2 \end{bmatrix} \\
+  \left(Df\right)^TDf &=   2\left(Du\right)^TDu  + \left(Dv_1\right)^TDv_1 + \left(Dv_2\right)^TDv_2 
 \end{align}
 
 \begin{align}
-  Du(\phi, \omega, \theta) &= \begin{bmatrix} -\frac{1}{2}\sin\phi & 0 & 0 & 0 \\ \frac{1}{2}\cos\phi\cos\omega & -\frac{1}{2}\sin\phi\sin\omega & 0 & 0\\  \frac{1}{2}\cos\phi\sin\omega & \frac{1}{2}\sin\phi\cos\omega & 0 & 0\end{bmatrix} \\
+  Du(\phi, \omega, \theta, \xi) &= \begin{bmatrix} -\frac{1}{2}\sin\phi & 0 & 0 & 0 \\ \frac{1}{2}\cos\phi\cos\omega & -\frac{1}{2}\sin\phi\sin\omega & 0 & 0\\  \frac{1}{2}\cos\phi\sin\omega & \frac{1}{2}\sin\phi\cos\omega & 0 & 0\end{bmatrix} \\
   \left(Du\right)^TDu &= \Scale[0.50]{\begin{bmatrix} 
 \frac{1}{4}\sin^2\phi + \frac{1}{4}\cos^2\phi\cos^2\omega+ \frac{1}{4}\cos^2\phi\sin^2\omega
 &  \frac{1}{4}\cos\phi\cos\omega\sin\phi\sin\omega - \frac{1}{4}\cos\phi\cos\omega\sin\phi\sin\omega 
@@ -127,16 +137,82 @@ Thus, we compute as follows.
 \end{align} \\
 
 
+\begin{align}
+v_1 &= R(2u, \theta)v_0 \\
+&= \left(\cos\theta I + 4(1-\cos\theta)uu^T + 2\sin\theta[u]_\times\right)v_0 \\
+&= \cos\theta v_0 + 4(1-\cos\theta)u(u\cdot v_0) + 2\sin\theta (u\times v_0) \\
+&= \cos\theta v_0 + 2\sin\theta (u\times v_0) \\
+v_2 &= R(2u, \theta + \xi)v_0 \\
+&= \cos(\theta+\xi) v_0 + 2\sin(\theta + \xi) (u\times v_0)
+\end{align}
+
+
+\begin{align}
+\nabla_\phi v_1 &= 2\sin\theta(\nabla_\phi u \times v_0) \\
+\nabla_\omega v_1 &= 2\sin\theta(\nabla_\omega u \times v_0) \\
+\nabla_\theta v_1 &= -\sin\theta v_0 + 2\cos\theta(u\times v_0) \\
+\nabla_\xi v_1 &= 0
+\end{align}
+
+\begin{align}
+\nabla_\phi v_2 &= 2\sin(\theta+\xi)(\nabla_\phi u \times v_0) \\
+\nabla_\omega v_2 &= 2\sin(\theta+\xi)(\nabla_\omega u \times v_0) \\
+\nabla_\theta v_2 &= -\sin(\theta+\xi) v_0 + 2\cos(\theta+\xi)(u\times v_0) \\
+\nabla_\xi v_2 &= -\sin(\theta+\xi) v_0 + 2\cos(\theta+\xi)(u\times v_0) \\
+\end{align}
+
+
+\begin{align}
+Dv_1 &= \Scale[1.00]{\begin{bmatrix} 
+\nabla_\phi v_1 &
+\nabla_\omega v_1 &
+\nabla_\theta v_1 &
+\nabla_\xi v_1 
+\end{bmatrix}} \\
+ \left(Dv_1\right)^TDv_1 &= \Scale[1.00]{\begin{bmatrix} 
+ \frac{3}{4}\sin^2\theta & 0 & 0 & 0 \\
+ 0 & \frac{3}{4}\sin^2\theta \sin^2\omega & 0 & 0\\
+ 0 & 0 & \frac{3}{4}& 0\\
+ 0 & 0 & 0 & 0 
+\end{bmatrix}} 
+\end{align} 
+
+\begin{align}
+ \left(Dv_2\right)^TDv_2 &= \Scale[1.00]{\begin{bmatrix} 
+ \frac{3}{4}\sin^2(\theta+\xi) & 0 & 0 & 0 \\
+ 0 & \frac{3}{4}\sin^2(\theta+\xi) \sin^2\omega & 0 & 0\\
+ 0 & 0 & \frac{3}{4} & \frac{3}{4}\\
+ 0 & 0 & \frac{3}{4} & \frac{3}{4}
+\end{bmatrix}} 
+\end{align} 
+
+\begin{align}
+ \left(Df\right)^TDf &= \Scale[0.70]{\begin{bmatrix} 
+ \frac{3}{4}\sin^2\theta + \frac{3}{4}\sin^2(\theta+\xi) + \frac{1}{2} & 0 & 0 & 0 \\
+ 0 & \frac{3}{4}\sin^2\theta \sin^2\omega + \frac{3}{4}\sin^2(\theta+\xi) \sin^2\omega + \frac{1}{2}\sin^2\phi & 0 & 0\\
+ 0 & 0 & \frac{3}{2} & \frac{3}{4}\\
+ 0 & 0 & \frac{3}{4} & \frac{3}{4}
+\end{bmatrix}} 
+\end{align} 
+
+\begin{align}
+h(\phi, \omega, \theta, \xi) &\propto \sqrt{\det\left(\left(Df\right)^TDf\right)} \\
+&\propto \sqrt{\left( \frac{3}{4}\sin^2\theta + \frac{3}{4}\sin^2(\theta+\xi) + \frac{1}{2} \right)\left(\frac{3}{4}\sin^2\theta \sin^2\omega + \frac{3}{4}\sin^2(\theta+\xi) \sin^2\omega + \frac{1}{2}\sin^2\phi\right)} \\
+&\propto \sqrt{\left(3\sin^2\theta + 3\sin^2(\theta+\xi) + 2\right)\left(3\sin^2\theta \sin^2\omega + 3\sin^2(\theta+\xi) \sin^2\omega + 2\sin^2\phi\right)}
+\end{align}
+
+
+
 \end{document}
 
 \begin{align}
 Dv(\phi, \omega, \theta, \xi) &= \Scale[1.0]{\begin{bmatrix}
-\frac{\partial R}{\partial\phi}v^0 & \frac{\partial R}{\partial\omega}v^0 & \frac{\partial R}{\partial\theta}v^0 
+\frac{\partial R}{\partial\phi}v_0 & \frac{\partial R}{\partial\omega}v_0 & \frac{\partial R}{\partial\theta}v_0 
 \end{bmatrix}} \\
 \left(Dv\right)^TDv &= \Scale[1.0]{\begin{bmatrix}
-(v^0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\phi}v^0 & (v^0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\omega}v^0 & (v^0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\theta}v^0 \\
-(v^0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\phi}v^0 & (v^0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\omega}v^0 & (v^0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\theta}v^0 \\ 
-    (v^0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\phi}v^0 & (v^0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\omega}v^0 & (v^0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\theta}v^0 
+(v_0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\phi}v_0 & (v_0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\omega}v_0 & (v_0)^T(\frac{\partial R}{\partial\phi})^T\frac{\partial R}{\partial\theta}v_0 \\
+(v_0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\phi}v_0 & (v_0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\omega}v_0 & (v_0)^T(\frac{\partial R}{\partial\omega})^T\frac{\partial R}{\partial\theta}v_0 \\ 
+    (v_0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\phi}v_0 & (v_0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\omega}v_0 & (v_0)^T(\frac{\partial R}{\partial\theta})^T\frac{\partial R}{\partial\theta}v_0     
 \end{bmatrix}}
 \end{align}
 
