@@ -33,12 +33,7 @@ def test_1():
     Test for uniformity of dihedral angle in two linked triangles.
     """
     #return lambda x: np.array([dihedral_angle(x, 0, 2, 3, 1)]) 
-    return lambda x: np.array([signed_dihedral_angle(x, 2, 0, 1, 3), 
-                               signed_dihedral_angle(x, 1, 0, 2, 3), 
-                               signed_dihedral_angle(x, 1, 0, 3, 2), 
-                               signed_dihedral_angle(x, 0, 1, 2, 3), 
-                               signed_dihedral_angle(x, 0, 1, 3, 2), 
-                               signed_dihedral_angle(x, 0, 2, 3, 1)]) 
+    return lambda x: np.array([signed_dihedral_angle(x, 0, 2, 3, 1)]) 
 
 def test_2():
     """
@@ -94,23 +89,23 @@ def triangle_normal(x, va, vb, vc):
     """ 
     return np.cross(x[3*vb:3*vb+3] - x[3*va:3*va+3], x[3*vc:3*vc+3] - x[3*va:3*va+3]) 
 
-#def signed_dihedral_angle(x, v0, v1a, v1b, v2):
-#    """
-#    Return the angle between v0, the v1a--v1b midpoint and v2 
-#    """
-#    # Triangle normals at v1a
-#    n1 = triangle_normal(x, v1a, v1b, v0)
-#    n2 = triangle_normal(x, v1a, v1b, v2)
-#
-#    ans = np.arccos(np.dot(n1, n2)/(numpy.linalg.norm(n1)*numpy.linalg.norm(n2)))
-#    
-#    ###
-#    ans = np.pi - ans
-#
-#    if np.dot(n1, x[3*v2:3*v2+3]- x[3*v1a:3*v1a+3]) > 0:
-#        return ans
-#    else:
-#        return 2.0*np.pi - ans
+def signed_dihedral_angle2(x, v0, v1a, v1b, v2):
+    """
+    Return the angle between v0, the v1a--v1b midpoint and v2 
+    """
+    # Triangle normals at v1a
+    n1 = triangle_normal(x, v1a, v1b, v0)
+    n2 = triangle_normal(x, v1a, v1b, v2)
+
+    ans = np.arccos(np.dot(n1, n2)/(numpy.linalg.norm(n1)*numpy.linalg.norm(n2)))
+    
+    ###
+    ans = np.pi - ans
+
+    if np.dot(n1, x[3*v2:3*v2+3]- x[3*v1a:3*v1a+3]) > 0:
+        return ans
+    else:
+        return 2.0*np.pi - ans
 
 def signed_dihedral_angle(x, v0, v1a, v1b, v2):
     """
