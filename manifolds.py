@@ -19,19 +19,44 @@ def get_manifold(manifold_name, kwargs={}):
         c = lambda x: c_fun(x,**kwargs)
         C = lambda x: C_fun(x,**kwargs)
         return c, C
-    except KeyError, NameError:
+    except (KeyError, NameError):
         try:
-            # For Building Game intermediates. Denoted 'polyname'.
-            #[poly_name, int_num_str] = manifold_name.split('__')
             int_num = kwargs['int_num']
-            #n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
             q0, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
-            c = lambda x: linkage_c_fun(x, links, lengths)
-            C = lambda x: linkage_C_fun(x, links)
+            fixed_inds = []
+            fixed_vals = []
+            try:
+                ff = kwargs['fixed_face']
+                for j, vert in enumerate(faces[ff]):
+                    # Only fix 6 dofs (i.e. dont over constrain)
+                    fixed_inds += [3*vert + k for k in range(3-j)]
+                    fixed_vals += [q0[3*vert+k] for k in range(3-j)]
+            except (TypeError, KeyError):
+                try:
+                    fixed_com = kwargs['fixed_com']
+                    try:
+                        masses = kwargs['masses']
+                    except (TypeError, KeyError):
+                        masses = None
+                except TypeError:
+                    fixed_com = False
+
+            c = lambda x: linkage_c_fun(x, 
+                                        links, 
+                                        lengths, 
+                                        fixed_inds=fixed_inds, 
+                                        fixed_vals=fixed_vals,
+                                        fixed_com=fixed_com,
+                                        masses=masses)
+            C = lambda x: linkage_C_fun(x, 
+                                        links, 
+                                        fixed_inds=fixed_inds,
+                                        fixed_com=fixed_com,
+                                        masses=masses)
             return c, C
         except ValueError, IndexError:
             pass
-        print "ERROR:", manifold_name, "not found."
+        print "ERROR:", manifold_name, "not found." 
         raise
 
 
@@ -61,28 +86,93 @@ def ellipse_C(x, a=None, A=None):
     else:
         C.append(2.0*x)
     return np.array(C)
-###--------------------------------------------------------------------------
+####--------------------------------------------------------------------------
+#            
+#def linkage_c_fun(q, links, lengths, dim=3):
+#    """
+#    Return np array of length m containting each constraint evaluated at q.
+#    """
+#    m = len(links)
+#    c = np.zeros((m,))
+#    for i, link in enumerate(links):
+#        c[i] = sum((q[dim*link[0]:dim*link[0] + dim] - 
+#                    q[dim*link[1]:dim*link[1] + dim])**2) - lengths[i]**2
+#    return c
+#
+#def linkage_C_fun(q, links, dim=3):
+#    """
+#    Compute Jacobian matrix of c at q.
+#    """    
+#    m = len(links)
+#    n = len(q)                                    
+#    C = np.zeros((m,n))
+#    for k, link in enumerate(links):
+#        for d in range(dim):
+#            C[k,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+#            C[k,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+#    return C
+#    return np.array(C)
+####--------------------------------------------------------------------------
             
-def linkage_c_fun(q, links, lengths, dim=3):
+def linkage_c_fun(q, links, lengths, fixed_inds=[], fixed_vals=[], fixed_com=False, masses=None, dim=3):
     """
     Return np array of length m containting each constraint evaluated at q.
     """
-    m = len(links)
+    if len(fixed_inds) != len(fixed_vals):
+        raise Exception("ERROR: fixed_inds and fixed_vals lengths must correspond")
+    nf = len(fixed_inds)
+    if fixed_com == True:
+        ncom = dim
+        if masses == None:
+            masses = np.ones(len(q)/dim)
+        if nf != 0:
+            raise Exception("Error: cannot both fix face and center of mass")
+    else:
+        ncom = 0
+    m = len(links) + nf + ncom
     c = np.zeros((m,))
+
+    # Fixed faces
+    for k in range(nf):
+        c[k] = q[fixed_inds[k]] - fixed_vals[k]
+
+    # Fixed center of mass
+    for j in range(ncom):
+        c[j] = np.dot(q[j::dim], masses)
+
+    # Link constraints
     for i, link in enumerate(links):
-        c[i] = sum((q[dim*link[0]:dim*link[0] + dim] - 
-                    q[dim*link[1]:dim*link[1] + dim])**2) - lengths[i]**2
+        c[i+nf+ncom] = sum((q[dim*link[0]:dim*link[0] + dim] - 
+                            q[dim*link[1]:dim*link[1] + dim])**2) - lengths[i]**2
     return c
 
-def linkage_C_fun(q, links, dim=3):
+def linkage_C_fun(q, links, fixed_inds=[], fixed_com=False, masses=None, dim=3):
     """
     Compute Jacobian matrix of c at q.
     """    
-    m = len(links)
+    nf = len(fixed_inds)
+    if fixed_com == True:
+        ncom = dim
+        if masses == None:
+            masses = np.ones(len(q)/dim)
+        if nf != 0:
+            raise Exception("Error: cannot both fix face and center of mass")
+    else:
+        ncom = 0
+    m = len(links) + nf + ncom
     n = len(q)                                    
     C = np.zeros((m,n))
+    # Fixed faces
+    for i in range(nf):
+        C[i,fixed_inds[i]] = 1.0
+
+    # Fixed center of mass
+    for j in range(ncom):
+        C[j,j::dim] = masses
+
+    # Link constraints
     for k, link in enumerate(links):
         for d in range(dim):
-            C[k,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
-            C[k,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+            C[k+nf+ncom,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+            C[k+nf+ncom,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
     return C
