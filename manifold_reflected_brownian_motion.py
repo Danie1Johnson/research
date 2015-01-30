@@ -9,6 +9,7 @@ import manifolds as mfs
 import boundaries as bds
 import statistics as sts
 import bga_4_0 as bga
+import multi_hist as mh
 
 #mrbm = reload(mrbm)
 mfs = reload(mfs)
@@ -55,6 +56,14 @@ class MRBM:
             self.stat_sum = np.zeros_like(self.stat(x0))
             self.stat_log = np.array([self.stat(x0)])
             self.num_stats = len(self.stat(x0))
+            try:
+                self.record_hist = stat_kwargs['record_hist']
+                self.hist_min = stat_kwargs['hist_min']
+                self.hist_max = stat_kwargs['hist_max']
+                self.hist_bins = stat_kwargs['hist_bins']
+                self.hist = mh.MultiHist(self.hist_min, self.hist_min, self.num_stats, self.hist_bins)
+            except KeyError:
+                self.record_hist = False
     
         # Variables
         self.n = len(x0)
@@ -107,9 +116,12 @@ class MRBM:
             if record_trace == True:
                 xs_run[kt+1,:] = self.x
             if self.stat != None:
-                self.stat_sum += self.stat(self.x)
+                curr_stat = self.stat(self.x)
+                self.stat_sum += curr_stat
                 if record_stats == True:
                     stat_log_run[kt+1,:] = self.stat(self.x)
+                if record_hist == True:
+                    self.hist.add_stats(curr_stats)
             if self.boundary_name != 'none':
                 self.dihedrals = self.get_dihedrals(self.x)
 
