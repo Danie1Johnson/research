@@ -6,7 +6,7 @@ class MultiHist:
     Array of histograms dynamically updated.
     """
 
-    def __inti__(self, min_val, max_val, num_stats, num_bins):
+    def __init__(self, min_val, max_val, num_stats, num_bins):
         self.hist = np.zeros((num_stats, num_buns))
 
     def get_inds(self, stats):

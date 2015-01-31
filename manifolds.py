@@ -25,6 +25,8 @@ def get_manifold(manifold_name, kwargs={}):
             q0, links, lengths, faces = bga.load_bg_int(manifold_name, int_num)
             fixed_inds = []
             fixed_vals = []
+            masses = None
+            fixed_com = False
             try:
                 ff = kwargs['fixed_face']
                 for j, vert in enumerate(faces[ff]):

@@ -30,8 +30,11 @@ class MRBM:
                  boundary_name, 
                  x0, 
                  h, 
-                 stat_name=None, 
-                 run_kwargs={}, 
+                 stat_name=None,
+                 record_hist=False,
+                 hist_min=None, 
+                 hist_max=None, 
+                 hist_bins=None,
                  manifold_kwargs={}, 
                  boundary_kwargs={}, 
                  stat_kwargs={}, 
@@ -44,7 +47,6 @@ class MRBM:
         self.boundary = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)      
         self.manifold_name = manifold_name
         self.boundary_name = boundary_name
-        self.run_args = run_kwargs
         self.manifold_kwargs = manifold_kwargs
         self.boundary_kwargs = boundary_kwargs
         
@@ -56,14 +58,12 @@ class MRBM:
             self.stat_sum = np.zeros_like(self.stat(x0))
             self.stat_log = np.array([self.stat(x0)])
             self.num_stats = len(self.stat(x0))
-            try:
-                self.record_hist = stat_kwargs['record_hist']
-                self.hist_min = stat_kwargs['hist_min']
-                self.hist_max = stat_kwargs['hist_max']
-                self.hist_bins = stat_kwargs['hist_bins']
+            self.record_hist = record_hist
+            if record_hist == True:
+                self.hist_min = hist_min
+                self.hist_max = hist_max
+                self.hist_bins = hist_bins
                 self.hist = mh.MultiHist(self.hist_min, self.hist_min, self.num_stats, self.hist_bins)
-            except KeyError:
-                self.record_hist = False
     
         # Variables
         self.n = len(x0)
@@ -120,7 +120,7 @@ class MRBM:
                 self.stat_sum += curr_stat
                 if record_stats == True:
                     stat_log_run[kt+1,:] = self.stat(self.x)
-                if record_hist == True:
+                if self.record_hist == True:
                     self.hist.add_stats(curr_stats)
             if self.boundary_name != 'none':
                 self.dihedrals = self.get_dihedrals(self.x)
