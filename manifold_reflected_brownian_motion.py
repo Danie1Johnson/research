@@ -15,6 +15,7 @@ import multi_hist as mh
 mfs = reload(mfs)
 bds = reload(bds)
 sts = reload(sts)
+mh = reload(mh)
 #bga = reload(bga)
 
 
@@ -63,7 +64,7 @@ class MRBM:
                 self.hist_min = hist_min
                 self.hist_max = hist_max
                 self.hist_bins = hist_bins
-                self.hist = mh.MultiHist(self.hist_min, self.hist_min, self.num_stats, self.hist_bins)
+                self.hist = mh.MultiHist(self.hist_min, self.hist_max, self.num_stats, self.hist_bins)
     
         # Variables
         self.n = len(x0)
@@ -121,7 +122,7 @@ class MRBM:
                 if record_stats == True:
                     stat_log_run[kt+1,:] = self.stat(self.x)
                 if self.record_hist == True:
-                    self.hist.add_stats(curr_stats)
+                    self.hist.add_stats(curr_stat)
             if self.boundary_name != 'none':
                 self.dihedrals = self.get_dihedrals(self.x)
 

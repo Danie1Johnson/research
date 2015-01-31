@@ -40,7 +40,7 @@ def get_manifold(manifold_name, kwargs={}):
                         masses = kwargs['masses']
                     except (TypeError, KeyError):
                         masses = None
-                except TypeError:
+                except (TypeError, KeyError):
                     fixed_com = False
 
             c = lambda x: linkage_c_fun(x, 
@@ -61,6 +61,8 @@ def get_manifold(manifold_name, kwargs={}):
         print "ERROR:", manifold_name, "not found." 
         raise
 
+
+###--------------------------------------------------------------------------
 
 ###--------------------------------------------------------------------------
 def sphere_c(x, r=1.0):
