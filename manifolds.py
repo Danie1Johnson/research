@@ -13,10 +13,7 @@ def get_manifold(manifold_name, kwargs={}):
     """
     Use manifold name to find and return constraint functions.
     """
-    #return globals()[manifold_name](**kwargs)
-
     try:
-        #print globals()[manifold_name]
         return globals()[manifold_name](**kwargs)
     except (KeyError, NameError):
         raise Exception("ERROR: " + manifold_name + " not found.")
