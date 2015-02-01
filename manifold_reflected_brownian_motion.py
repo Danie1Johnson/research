@@ -68,7 +68,9 @@ class MRBM:
     
         # Variables
         self.n = len(x0)
-        self.m = self.n - self.C(x0).shape[0]
+        #self.m = self.n - self.C(x0).shape[0]
+        self.m = self.n - len(self.c(x0))
+        print self.m, self.n, self.C(x0).shape
         self.x0 = np.copy(x0)
         self.x = np.copy(x0)
         self.xs = np.array([np.copy(x0)])
@@ -87,7 +89,7 @@ class MRBM:
         ### Handle BG vs not, better 
         if self.boundary_name != 'none':
             self.dihedral_inds = []
-            self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_name, manifold_kwargs['int_num'])
+            self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_kwargs['poly_name'], manifold_kwargs['int_num'])
             F = len(self.faces)
             for j in range(F):
                 for k in range(j+1, F):

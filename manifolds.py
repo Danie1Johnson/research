@@ -23,8 +23,6 @@ def get_manifold(manifold_name, kwargs={}):
 def building_game(poly_name=None, 
                   int_num=None, 
                   fixed_face=None,
-                  fixed_inds = [], 
-                  fixed_vals = [],
                   fixed_com=False,
                   masses = None,
                   dim=3):
@@ -36,6 +34,9 @@ def building_game(poly_name=None,
     except:
         raise Exception("ERROR: Building game intermediate " + str(int_num) + 
                         " for " + polyname + " not found.")
+    fixed_inds = [] 
+    fixed_vals = []
+                  
     if fixed_face != None:
         for j, vert in enumerate(faces[fixed_face]):
             # Only fix 6 dofs (i.e. dont over constrain)
