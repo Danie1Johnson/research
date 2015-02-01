@@ -1,50 +1,49 @@
 """
-NAME_boundary(x) returns True if x is within the boundary and False otherwise.
+Return function boundary_name(x) that returns True if x is within the boundary and False otherwise.
 """
-import numpy as np
 import triangle_intersection as ti
 import bga_4_0 as bga
 
-#ti = reload(ti)
-#bga = reload(bga)
-
 def get_boundary(boundary_name, kwargs={}):
+    if boundary_name == None:
+        return lambda x: True
     try:
-        b_fun = globals()[boundary_name+"_boundary"]
-        boundary = lambda x: b_fun(x,**kwargs)
-        return boundary  #, boundary_normal
-    except KeyError, NameError:
-        try:
-            # For Building Game intermediates. Denoted 'polyname'.
-            int_num = kwargs['int_num']
-            #n, dim, q0, masses, links, lengths, faces = bga.load_bg_int(boundary_name, int_num)
-            q0, links, lengths, faces = bga.load_bg_int(boundary_name, int_num)
-            boundary = lambda x: nonintersection_boundary(x, faces)
-            return boundary  #, boundary_normal
-        except ValueError, IndexError:
-            pass
-        print "ERROR:", boundary_name, "not found."
-        raise
+        return globals()[boundary_name](**kwargs)
+    except (KeyError, NameError):
+        raise Exception("ERROR: " + boundary_name + " not found.")
+        
+###--------------------------------------------------------------------------
+def positive_boundary():
+    return lambda x: min(x) >= 0.0
+
+####--------------------------------------------------------------------------
+#def none():
+#    return lambda x: True
 
 ###--------------------------------------------------------------------------
-def positive_boundary(x):
-    return min(x) < 0.0
-
-###--------------------------------------------------------------------------
-def none_boundary(x):
-    return True
-
-###--------------------------------------------------------------------------
+def self_intersection(poly_name=None, int_num=None):
+    """
+    For building game intermediates, test for intersection of triangles.
+    """
+    try:
+        q0, links, lengths, faces = bga.load_bg_int(poly_name, int_num)
+        return lambda x: self_intersection_fun(x, faces)
+    except (ValueError, IndexError):
+        raise Exception("ERROR: Building game intermediate " + str(int_num) + 
+                " for " + polyname + " not found.")
 
 def adjacent_faces(j, k, faces):
     return len(set(faces[j]).intersection(set(faces[k]))) == 2
  
-def nonintersection_boundary(x, faces):
+def self_intersection_fun(x, faces):
     F = len(faces)
     for j in range(F):
         for k in range(j+1, F):
             if adjacent_faces(j, k, faces) == True:
                  continue
-            if ti.triangle_intersection(ti.get_face(x, faces[j]), ti.get_face(x, faces[k]), scaling=0.99) == True:
+            if ti.triangle_intersection(ti.get_face(x, faces[j]), 
+                                        ti.get_face(x, faces[k]), 
+                                        scaling=0.99) == True:
                 return False
     return True
+###--------------------------------------------------------------------------

@@ -13,6 +13,8 @@ def get_manifold(manifold_name, kwargs={}):
     """
     Use manifold name to find and return constraint functions.
     """
+    if manifold_name == None:
+        return lambda x: np.empty(shape=(0)), np.empty(shape=(0,0)) 
     try:
         return globals()[manifold_name](**kwargs)
     except (KeyError, NameError):

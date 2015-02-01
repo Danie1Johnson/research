@@ -27,18 +27,18 @@ class MRBM:
     """
     
     def __init__(self, 
-                 manifold_name, 
-                 boundary_name, 
                  x0, 
                  h, 
+                 manifold_name=None, 
+                 boundary_name=None, 
                  stat_name=None,
+                 manifold_kwargs={}, 
+                 boundary_kwargs={}, 
+                 stat_kwargs={}, 
                  record_hist=False,
                  hist_min=None, 
                  hist_max=None, 
                  hist_bins=None,
-                 manifold_kwargs={}, 
-                 boundary_kwargs={}, 
-                 stat_kwargs={}, 
                  err_tol=10**-15, 
                  Sig=None):
         """
@@ -50,6 +50,15 @@ class MRBM:
         self.boundary_name = boundary_name
         self.manifold_kwargs = manifold_kwargs
         self.boundary_kwargs = boundary_kwargs
+        
+        # Verify initial point is valid
+        if np.linalg.norm(self.c(x0)) > err_tol:
+            raise Exception("ERROR: initial point x0 does not satisfy constraints ("
+                            + str(numpy.linalg.norm(self.c(x0))) 
+                            + ") to tolerance ("
+                            + str(self.err_tol)").")
+        if self.boundary(x0) == False:
+            raise Exception("ERROR: initial point x0 outside of boundary")
         
         # Statistic functions & variables
         self.stat_name = stat_name
@@ -70,7 +79,7 @@ class MRBM:
         self.n = len(x0)
         #self.m = self.n - self.C(x0).shape[0]
         self.m = self.n - len(self.c(x0))
-        print self.m, self.n, self.C(x0).shape
+        #print 'n:', self.n, '\tm:', self.m, self.C(x0).shape
         self.x0 = np.copy(x0)
         self.x = np.copy(x0)
         self.xs = np.array([np.copy(x0)])
