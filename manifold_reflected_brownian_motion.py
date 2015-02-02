@@ -30,10 +30,12 @@ class MRBM:
                  x0, 
                  h, 
                  manifold_name=None, 
-                 boundary_name=None, 
+                 unary_boundary_name=None, 
+                 binary_boundary_name=None, 
                  stat_name=None,
                  manifold_kwargs={}, 
-                 boundary_kwargs={}, 
+                 unary_boundary_kwargs={}, 
+                 binary_boundary_kwargs={}, 
                  stat_kwargs={}, 
                  record_hist=False,
                  hist_min=None, 
@@ -45,11 +47,14 @@ class MRBM:
         """
         # Manifold and Boundary functions
         self.c, self.C = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
-        self.boundary = bds.get_boundary(boundary_name, kwargs=boundary_kwargs)      
+        self.unary_boundary = bds.get_boundary(unary_boundary_name, kwargs=unary_boundary_kwargs)      
+        self.binary_boundary = bds.get_boundary(binary_boundary_name, kwargs=binary_boundary_kwargs, binary=True)      
         self.manifold_name = manifold_name
-        self.boundary_name = boundary_name
+        self.unary_boundary_name = unary_boundary_name
+        self.binary_boundary_name = binary_boundary_name
         self.manifold_kwargs = manifold_kwargs
-        self.boundary_kwargs = boundary_kwargs
+        self.unary_boundary_kwargs = unary_boundary_kwargs
+        self.binary_boundary_kwargs = binary_boundary_kwargs
 
         # Verify initial point is valid
         x0 = self.recenter(x0)
@@ -59,8 +64,8 @@ class MRBM:
                             + ") to tolerance ("
                             + str(self.err_tol)
                             + ").")
-        if self.boundary(x0) == False:
-            raise Exception("ERROR: initial point x0 outside of boundary")
+        if self.unary_boundary(x0) == False:
+            raise Exception("ERROR: initial point x0 outside of unary_boundary")
         
         # Statistic functions & variables
         self.stat_name = stat_name
@@ -80,7 +85,7 @@ class MRBM:
         # Variables
         self.n = len(x0)
         #self.m = self.n - self.C(x0).shape[0]
-        self.m = self.n - len(self.c(x0))
+        self.m = self.n - len(self.c(x0)) ############################################
         #print 'n:', self.n, '\tm:', self.m, self.C(x0).shape
         self.x0 = np.copy(x0)
         self.x = np.copy(x0)
@@ -97,20 +102,10 @@ class MRBM:
         self.Sig_inv = numpy.linalg.inv(self.Sig)
         self.B = numpy.random.uniform(size=(self.n,self.m))
 
-        ### Handle BG vs not, better 
-        if self.boundary_name != 'none':
-            self.dihedral_inds = []
-            self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_kwargs['poly_name'], manifold_kwargs['int_num'])
-            F = len(self.faces)
-            for j in range(F):
-                for k in range(j+1, F):
-                    if bds.adjacent_faces(j, k, self.faces) == True:
-                        self.dihedral_inds.append(self.order_verts(self.faces[j], self.faces[k]))
-            self.dihedrals = self.get_dihedrals(x0)
-
-        if self.boundary(x0) == False:
-            print "ERROR: x0 not in domain." 
-
+        #### Handle BG vs not, better ### need to access bg info regularly? or just once?
+        #if self.unary_boundary_name == 'building_game':
+        #    self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_kwargs['poly_name'], 
+        #manifold_kwargs['int_num'])
 
     def sample(self, N=1, record_trace=True, record_stats=True):
         """
@@ -136,8 +131,8 @@ class MRBM:
                     stat_log_run[kt+1,:] = self.stat(self.x)
                 if self.record_hist == True:
                     self.hist.add_stats(curr_stat)
-            if self.boundary_name != 'none':
-                self.dihedrals = self.get_dihedrals(self.x)
+            #if self.binary_boundary_name == 'dihedrals':
+            #    self.dihedrals = self.get_dihedrals(self.x)
 
         self.samples += N        
 
@@ -148,6 +143,8 @@ class MRBM:
         if record_stats == True:
             self.stat_log = np.vstack((self.stat_log, stat_log_run[1:,:]))
         
+        self.stat_mean = self.stat_sum/float(self.samples)
+
         return self.x
 
     def new_rejection_sample(self):
@@ -182,46 +179,11 @@ class MRBM:
                 gamma_sol = Newton(gamma, F, J, self.err_tol)
             x_prop = y + np.dot(Q1,gamma_sol)
 
-            # Check if x_prop within boundary.
-            if self.boundary(x_prop) == False or (self.boundary_name != 'none' and 
-                                                  self.dihedral_switch(x_prop) == True):
+            # Check if x_prop within boundaries.
+            if self.unary_boundary(x_prop) == False or self.binary_boundary(self.x, x_prop) == False:
                 x_prop = None
-
+                
         return x_prop
-
-    def order_verts(self, v1, v2):
-        """
-        get order of vert inds for dihedral calculation.
-        """
-        common_verts = set(v1).intersection(set(v2))
-        ordered_verts = [list(set(v1).difference(common_verts))[0],
-                         list(common_verts)[0],
-                         list(common_verts)[1],
-                         list(set(v2).difference(common_verts))[0]]
-        return ordered_verts
-
-    def dihedral_switch(self, y):
-        """
-        Compare the dihedrals of proposal point y with self.x and check for sign change. 
-        """
-        new_dihedrals = self.get_dihedrals(y)
-
-        #if min((self.dihedrals - np.pi)*(new_dihedrals - np.pi)) < -1.0:
-        
-        if max(abs(new_dihedrals - self.dihedrals)) > 2.0:
-            return True
-            #return False ### NO NO NO 
-        else:
-            return False
-
-    def get_dihedrals(self, y):
-        """
-        Compure the dihedral angles at y.
-        """
-        dihedrals = []
-        for di in self.dihedral_inds:
-            dihedrals.append(sts.signed_dihedral_angle(y, di[0], di[1], di[2], di[3]))
-        return np.array(dihedrals)
 
     def parm_str(self, N=None, M=None, t=None):
         pstr = self.manifold_name + "_" 
@@ -229,8 +191,8 @@ class MRBM:
         pstr += "m_" + str(self.m) + "_"
         for a in self.manifold_kwargs.items():
             pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
-        pstr += self.boundary_name + "_"  
-        for a in self.boundary_kwargs.items():
+        pstr += self.unary_boundary_name + "_"  
+        for a in self.unary_boundary_kwargs.items():
             pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
         pstr += "h_" + parm_to_str(self.h) + "_"
 
