@@ -26,7 +26,7 @@ def building_game(poly_name=None,
                   int_num=None, 
                   fixed_face=None,
                   fixed_com=False,
-                  masses = None,
+                  masses=None,
                   dim=3):
     """
     Load Building Game info for specified intermediate and return constraint functions.

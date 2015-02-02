@@ -50,13 +50,15 @@ class MRBM:
         self.boundary_name = boundary_name
         self.manifold_kwargs = manifold_kwargs
         self.boundary_kwargs = boundary_kwargs
-        
+
         # Verify initial point is valid
+        x0 = self.recenter(x0)
         if np.linalg.norm(self.c(x0)) > err_tol:
             raise Exception("ERROR: initial point x0 does not satisfy constraints ("
-                            + str(numpy.linalg.norm(self.c(x0))) 
+                            + str(numpy.linalg.norm(self.c(x0)))
                             + ") to tolerance ("
-                            + str(self.err_tol)").")
+                            + str(self.err_tol)
+                            + ").")
         if self.boundary(x0) == False:
             raise Exception("ERROR: initial point x0 outside of boundary")
         
@@ -258,6 +260,18 @@ class MRBM:
 
     def pkl_filename(self):
         return self.parm_str(**self.run_args) + ".pkl"
+
+    def recenter(self, x):
+        if 'fixed_com' in self.manifold_kwargs:
+            if self.manifold_kwargs['fixed_com'] == True:
+                if 'masses' in self.manifold_kwargs:
+                    masses = self.manifold_kwargs['masses']
+                else:
+                    masses = np.ones(len(x)/3)
+                for j in range(3):
+                    dim_com = np.dot(x[j::3], masses)/sum(masses)
+                    x[j::3] -= dim_com
+        return x
 
 def project_to_hyperplane(norm_amb, z, Q, x):
     """
