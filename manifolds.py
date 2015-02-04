@@ -26,6 +26,7 @@ def building_game(poly_name=None,
                   int_num=None, 
                   fixed_face=None,
                   fixed_com=False,
+                  fixed_rotation=False,
                   masses=None,
                   dim=3):
     """
@@ -49,7 +50,8 @@ def building_game(poly_name=None,
                    lengths=lengths, 
                    fixed_inds=fixed_inds, 
                    fixed_vals=fixed_vals, 
-                   fixed_com=fixed_com, 
+                   fixed_com=fixed_com,
+                   fixed_rotation=fixed_rotation,
                    masses=masses, 
                    dim=dim)
 ###--------------------------------------------------------------------------
@@ -89,7 +91,14 @@ def ellipse_C(x, a=None, A=None):
         C.append(2.0*x)
     return np.array(C)
 ###--------------------------------------------------------------------------            
-def linkage(links=[], lengths=[], fixed_inds=[], fixed_vals=[], fixed_com=False, masses=None, dim=3):
+def linkage(links=[], 
+            lengths=[], 
+            fixed_inds=[], 
+            fixed_vals=[], 
+            fixed_com=False, 
+            fixed_rotation=False, 
+            masses=None, 
+            dim=3):
     c = lambda x: linkage_c(x, 
                             links=links, 
                             lengths=lengths, 
@@ -102,6 +111,7 @@ def linkage(links=[], lengths=[], fixed_inds=[], fixed_vals=[], fixed_com=False,
                             links=links,
                             fixed_inds=fixed_inds, 
                             fixed_com=fixed_com, 
+                            fixed_rotation=fixed_rotation,
                             masses=masses, 
                             dim=dim)
     return c, C
@@ -139,7 +149,7 @@ def linkage_c(q, links=[], lengths=[], fixed_inds=[], fixed_vals=[], fixed_com=F
                             q[dim*link[1]:dim*link[1] + dim])**2) - lengths[i]**2
     return c
 
-def linkage_C(q, links, fixed_inds=[], fixed_com=False, masses=None, dim=3):
+def linkage_C(q, links, fixed_inds=[], fixed_com=False, fixed_rotation=False, masses=None, dim=3):
     """
     Compute Jacobian matrix of c at q.
     """    

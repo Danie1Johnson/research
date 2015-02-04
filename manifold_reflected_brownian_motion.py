@@ -182,7 +182,11 @@ class MRBM:
             # Check if x_prop within boundaries.
             if self.unary_boundary(x_prop) == False or self.binary_boundary(self.x, x_prop) == False:
                 x_prop = None
-                
+
+        # If rotation controlled in the manifold, rotate back to fram of reference. 
+        if self.manifold_reframe != None:
+            x_prop = self.manifold_reframe(x_prop)
+
         return x_prop
 
     def parm_str(self, N=None, M=None, t=None):
