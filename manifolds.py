@@ -8,13 +8,16 @@ return a unitvector (of the smae length as x) that is inwardly normal to the b_n
 import numpy as np
 
 import bga_4_0 as bga
+import triangle_geometry as ti
+
+ti = reload(ti)
 
 def get_manifold(manifold_name, kwargs={}):
     """
     Use manifold name to find and return constraint functions.
     """
     if manifold_name == None:
-        return lambda x: np.empty(shape=(0)), np.empty(shape=(0,0)) 
+        return lambda x: np.empty(shape=(0)), np.empty(shape=(0,0)), None
     try:
         return globals()[manifold_name](**kwargs)
     except (KeyError, NameError):
@@ -58,7 +61,7 @@ def building_game(poly_name=None,
 def sphere(r=1.0):
     c = lambda x: sphere_c(x, r=r)
     C = lambda x: sphere_C(x, r=r)
-    return c, C
+    return c, C, None
 
 def sphere_c(x, r=1.0):
     return ellipse_c(x, r=r)
@@ -69,7 +72,7 @@ def sphere_C(x):
 def ellipse(r=1.0, a=None, A=None):
     c = lambda x: ellipse_c(x, r=r, a=a, A=A)
     C = lambda x: ellipse_C(x, r=r, a=a, A=A)
-    return c, C
+    return c, C, None
 
 def ellipse_c(x, r=1.0, a=None, A=None):
     c = []
@@ -114,7 +117,11 @@ def linkage(links=[],
                             fixed_rotation=fixed_rotation,
                             masses=masses, 
                             dim=dim)
-    return c, C
+    if fixed_rotation == True:
+        reframe = lambda x, y: linkage_reframe(x, y)
+    else:
+        reframe = None
+    return c, C, reframe
 
 def linkage_c(q, links=[], lengths=[], fixed_inds=[], fixed_vals=[], fixed_com=False, masses=None, dim=3):
     """
@@ -162,7 +169,17 @@ def linkage_C(q, links, fixed_inds=[], fixed_com=False, fixed_rotation=False, ma
             raise Exception("Error: cannot both fix face and center of mass")
     else:
         ncom = 0
-    m = len(links) + nf + ncom
+
+    if fixed_rotation == True:
+        nrot = dim
+        if fixed_com == False:
+            raise Exception("ERROR: center of mass not fixed, but trying to fix rotations.")
+        if (masses == 1.0).all() == False:
+            raise Exception("ERROR: center of mass not the same as the centroid.")
+    else:
+        nrot = 0
+
+    m = len(links) + nf + ncom + nrot
     n = len(q)                                    
     C = np.zeros((m,n))
     # Fixed faces
@@ -173,9 +190,32 @@ def linkage_C(q, links, fixed_inds=[], fixed_com=False, fixed_rotation=False, ma
     for j in range(ncom):
         C[j,j::dim] = masses
 
+    # Rotation directions.
+    for j in range(nrot):
+        C[j+dim,:] = rot_v(j, q)
+
     # Link constraints
     for k, link in enumerate(links):
         for d in range(dim):
-            C[k+nf+ncom,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
-            C[k+nf+ncom,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+            C[k+nf+ncom+nrot,link[0]*dim + d] += 2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
+            C[k+nf+ncom+nrot,link[1]*dim + d] += -2.0*(q[link[0]*dim + d] - q[link[1]*dim + d])
     return C
+
+def linkage_reframe(x, y):
+    """
+    Rotate x back to the reference fram of y.
+    """
+    U = ti.Kabsch(x.reshape((-1,3)), y.reshape((-1,3))) 
+    return np.flatten(np.dot(x.reshape((-1,3)), U))
+
+def rot_v(j, q):
+    """
+    jth basis vector for tangent directions corresponding to rigid rotations. 
+    """
+    Ej = np.zeros((3,3))
+    ind_a = j/2
+    ind_b = (j+1)/2 + 1
+    Ej[ind_a,ind_b] = 1.0    
+    Ej[ind_b,ind_a] = -1.0
+
+    return np.dot(q.reshape((-1,3)), Ej).flatten()

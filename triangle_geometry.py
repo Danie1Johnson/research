@@ -154,8 +154,8 @@ def Kabsch(P, Q, err_tol=10**-12):
     that optimally rotates P onto Q.
     http://en.wikipedia.org/wiki/Kabsch_algorithm
     """
-    assert abs(max(P.mean(axis=0))) < err_tol 
-    assert abs(max(Q.mean(axis=0))) < err_tol 
+    assert abs(max(P.mean(axis=0))) < err_tol, abs(max(P.mean(axis=0)))
+    assert abs(max(Q.mean(axis=0))) < err_tol, abs(max(Q.mean(axis=0)))
         
     A = np.dot(P.T, Q)
     V, s, WT = numpy.linalg.svd(A)

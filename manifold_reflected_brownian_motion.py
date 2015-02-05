@@ -46,7 +46,7 @@ class MRBM:
         """
         """
         # Manifold and Boundary functions
-        self.c, self.C = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
+        self.c, self.C, self.manifold_reframe = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
         self.unary_boundary = bds.get_boundary(unary_boundary_name, kwargs=unary_boundary_kwargs)      
         self.binary_boundary = bds.get_boundary(binary_boundary_name, kwargs=binary_boundary_kwargs, binary=True)      
         self.manifold_name = manifold_name
@@ -85,7 +85,7 @@ class MRBM:
         # Variables
         self.n = len(x0)
         #self.m = self.n - self.C(x0).shape[0]
-        self.m = self.n - len(self.c(x0)) ############################################
+        self.m = self.n - self.C(x0).shape[0] ############################################
         #print 'n:', self.n, '\tm:', self.m, self.C(x0).shape
         self.x0 = np.copy(x0)
         self.x = np.copy(x0)
@@ -185,7 +185,7 @@ class MRBM:
 
         # If rotation controlled in the manifold, rotate back to fram of reference. 
         if self.manifold_reframe != None:
-            x_prop = self.manifold_reframe(x_prop)
+            x_prop = self.manifold_reframe(x_prop, self.x)
 
         return x_prop
 
