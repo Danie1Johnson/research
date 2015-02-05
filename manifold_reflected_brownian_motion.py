@@ -46,7 +46,8 @@ class MRBM:
         """
         """
         # Manifold and Boundary functions
-        self.c, self.C, self.manifold_reframe = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
+        self.c, self.C, self.manifold_reframe, self.manifold_mod_directions = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
+
         self.unary_boundary = bds.get_boundary(unary_boundary_name, kwargs=unary_boundary_kwargs)      
         self.binary_boundary = bds.get_boundary(binary_boundary_name, kwargs=binary_boundary_kwargs, binary=True)      
         self.manifold_name = manifold_name
@@ -153,30 +154,47 @@ class MRBM:
         """
         x = np.copy(self.x)
         # Find Bases
-        A = np.hstack((self.C(x).T, self.B))
+        if self.manifold_mod_directions != None:
+            D = self.manifold_mod_directions(x)
+            rankD = D.shape[0]
+            A = np.hstack((self.C(x).T, D.T, self.B[:,rankD:]))
+        else:
+            A = np.hstack((self.C(x).T, self.B))
+            rankD = 0
         Q, R = numpy.linalg.qr(A)
         # Check for full rank
         if Q.shape[1] != self.n:
             raise Exception("ERROR?: A not of full rank", n, Q.shape[1])  
              
         Q1 = np.copy(Q[:,:self.n-self.m])
+        Q1b = np.copy(Q[:,:self.n-self.m+rankD])
         Q2 = np.copy(Q[:,self.n-self.m:])
+        Q2b = np.copy(Q[:,self.n-self.m+rankD:])
 
         x_prop = None
         while x_prop == None:
             gamma_sol = None
             while gamma_sol == None:
                 # Make step in tangent space.
-                alpha = numpy.random.multivariate_normal(np.zeros(self.m),self.Sig)
-                v = np.dot(Q2,alpha)
+                alpha = numpy.random.multivariate_normal(np.zeros(self.m - rankD), np.eye(self.m - rankD))
+                v = np.dot(Q2b,alpha)
                 v /= numpy.linalg.norm(v)
                 y = x + self.d**0.5*self.h*v 
 
                 # Project back to M
+                #gamma = np.zeros(self.n-self.m + rankD)
+                #F = lambda gam: self.c(y + np.dot(Q1b,gam))
+                #J = lambda gam: np.dot(self.C(y + np.dot(Q1b,gam)),Q1b)
+                #print gamma.shape, Q1b.shape, y.shape
+                #print D.shape, rankD
+                #print self.m, self.n
+                #print self.c(y).shape, self.C(y).shape
+                #print F(gamma).shape, J(gamma).shape
                 gamma = np.zeros(self.n-self.m)
                 F = lambda gam: self.c(y + np.dot(Q1,gam))
                 J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
                 gamma_sol = Newton(gamma, F, J, self.err_tol)
+            #x_prop = y + np.dot(Q1b,gamma_sol)
             x_prop = y + np.dot(Q1,gamma_sol)
 
             # Check if x_prop within boundaries.
