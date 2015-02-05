@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy.linalg
 import cPickle
 import os
+import sys
 
 #import manifold_reflected_brownian_motion as mrbm
 import manifolds as mfs
@@ -108,7 +109,7 @@ class MRBM:
         #    self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_kwargs['poly_name'], 
         #manifold_kwargs['int_num'])
 
-    def sample(self, N=1, record_trace=True, record_stats=True):
+    def sample(self, N=1, record_trace=True, record_stats=True, progress_bar=True, bar_width=20):
         """
         Take a time grid and boundary axis lengths and draw samples according to rejection scheme.
         """
@@ -121,22 +122,41 @@ class MRBM:
             stat_log_run = np.zeros((len(T_run), self.num_stats))
             stat_log_run[0,:] = self.stat(self.x)
 
-        for kt, t in enumerate(T_run[1:]):
-            self.x = self.new_rejection_sample()
-            if record_trace == True:
-                xs_run[kt+1,:] = self.x
-            if self.stat != None:
-                curr_stat = self.stat(self.x)
-                self.stat_sum += curr_stat
-                if record_stats == True:
-                    stat_log_run[kt+1,:] = self.stat(self.x)
-                if self.record_hist == True:
-                    self.hist.add_stats(curr_stat)
-            #if self.binary_boundary_name == 'dihedrals':
-            #    self.dihedrals = self.get_dihedrals(self.x)
+        if progress_bar == True:
+            #sys.stdout.write("[%s]" % (" " * bar_width))
+            sys.stdout.write("_" * bar_width)
+            sys.stdout.write('\n')
+            sys.stdout.flush()
+            #sys.stdout.write("\b" * (bar_width+1)) 
+        else:
+            bar_width = 1
 
-        self.samples += N        
-
+        dN = N/bar_width
+        for b in xrange(bar_width):
+            k_min = 1+dN*b
+            if b == bar_width - 1:
+                k_max = None
+            else:
+                k_max = 1 + dN*(b+1)
+            for kt, t in enumerate(T_run[k_min:k_max]):
+                self.x = self.new_rejection_sample()
+                self.samples += 1        
+                if record_trace == True:
+                    xs_run[kt+1,:] = self.x
+                if self.stat != None:
+                    curr_stat = self.stat(self.x)
+                    self.stat_sum += curr_stat
+                    if record_stats == True:
+                        stat_log_run[kt+1,:] = self.stat(self.x)
+                    if self.record_hist == True:
+                        self.hist.add_stats(curr_stat)
+            if progress_bar == True:
+                sys.stdout.write("-")
+                sys.stdout.flush()
+        if progress_bar == True:
+            sys.stdout.write("\n")
+        
+        
         if record_trace == True:
             self.T = np.hstack((self.T, self.T[-1] + T_run[1:]))
             self.xs = np.vstack((self.xs, xs_run[1:,:]))

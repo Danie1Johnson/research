@@ -211,6 +211,7 @@ def linkage_reframe(x, y):
     """
     U = ti.Kabsch(x.reshape((-1,3)), y.reshape((-1,3))) 
     return np.dot(x.reshape((-1,3)), U).flatten()
+    #return np.dot(x.reshape((-1,3)), U.T).flatten() #######WRONG!!!!#
 
 def rot_v(j, q):
     """
@@ -221,5 +222,5 @@ def rot_v(j, q):
     ind_b = (j+1)/2 + 1
     Ej[ind_a,ind_b] = 1.0    
     Ej[ind_b,ind_a] = -1.0
-
-    return np.dot(q.reshape((-1,3)), Ej).flatten()
+    #print Ej
+    return np.dot(Ej, q.reshape((-1,3)).T).T.flatten()
