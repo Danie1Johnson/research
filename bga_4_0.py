@@ -784,7 +784,7 @@ def animate_aux(i, bg_int, faces, face_lines):
     """
     perform animation step
     """
-    bg_int.sample()
+    bg_int.sample(progress_bar=False)
     for k, f in enumerate(face_lines):
         f.set_data(face_position(bg_int, k, faces))
     return face_lines

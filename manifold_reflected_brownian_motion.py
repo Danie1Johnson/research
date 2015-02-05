@@ -46,6 +46,9 @@ class MRBM:
                  Sig=None):
         """
         """
+        self.err_tol = err_tol
+        
+
         # Manifold and Boundary functions
         self.c, self.C, self.manifold_reframe, self.manifold_mod_directions = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
 
@@ -94,7 +97,6 @@ class MRBM:
         self.xs = np.array([np.copy(x0)])
         self.h = h
         self.T = np.array([0.0])
-        self.err_tol = err_tol
         self.samples = 1
         self.d = len(x0)
         if Sig == None:
@@ -200,7 +202,7 @@ class MRBM:
                 v = np.dot(Q2b,alpha)
                 v /= numpy.linalg.norm(v)
                 y = x + self.d**0.5*self.h*v 
-
+                print v
                 # Project back to M
                 #gamma = np.zeros(self.n-self.m + rankD)
                 #F = lambda gam: self.c(y + np.dot(Q1b,gam))
