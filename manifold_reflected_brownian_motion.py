@@ -137,10 +137,11 @@ class MRBM:
         for b in xrange(bar_width):
             k_min = 1+dN*b
             if b == bar_width - 1:
-                k_max = None
+                k_max = len(T_run)-1
             else:
                 k_max = 1 + dN*(b+1)
-            for kt, t in enumerate(T_run[k_min:k_max]):
+            #for kt, t in enumerate(T_run[k_min:k_max]):
+            for kt in xrange(k_min,k_max):
                 self.x = self.new_rejection_sample()
                 self.samples += 1        
                 if record_trace == True:
@@ -202,7 +203,7 @@ class MRBM:
                 v = np.dot(Q2b,alpha)
                 v /= numpy.linalg.norm(v)
                 y = x + self.d**0.5*self.h*v 
-                print v
+                #print v
                 # Project back to M
                 #gamma = np.zeros(self.n-self.m + rankD)
                 #F = lambda gam: self.c(y + np.dot(Q1b,gam))
@@ -224,7 +225,7 @@ class MRBM:
                 x_prop = None
 
         # If rotation controlled in the manifold, rotate back to fram of reference. 
-        if self.manifold_reframe != None:
+        if self.manifold_reframe != None:####################################
             x_prop = self.manifold_reframe(x_prop, self.x)
 
         return x_prop
