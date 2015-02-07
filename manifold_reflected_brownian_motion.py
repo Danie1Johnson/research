@@ -133,24 +133,25 @@ class MRBM:
         else:
             bar_width = 1
 
-        dN = N/bar_width
+        dN = N/(bar_width - 1)
+        rN = N%(bar_width - 1)
         for b in xrange(bar_width):
             k_min = 1+dN*b
             if b == bar_width - 1:
-                k_max = len(T_run)-1
+                k_max = k_min + rN
             else:
-                k_max = 1 + dN*(b+1)
+                k_max = k_min + dN
             #for kt, t in enumerate(T_run[k_min:k_max]):
             for kt in xrange(k_min,k_max):
                 self.x = self.new_rejection_sample()
                 self.samples += 1        
                 if record_trace == True:
-                    xs_run[kt+1,:] = self.x
+                    xs_run[kt,:] = self.x
                 if self.stat != None:
                     curr_stat = self.stat(self.x)
                     self.stat_sum += curr_stat
                     if record_stats == True:
-                        stat_log_run[kt+1,:] = self.stat(self.x)
+                        stat_log_run[kt,:] = self.stat(self.x)
                     if self.record_hist == True:
                         self.hist.add_stats(curr_stat)
             if progress_bar == True:
@@ -203,7 +204,7 @@ class MRBM:
                 v = np.dot(Q2b,alpha)
                 v /= numpy.linalg.norm(v)
                 y = x + self.d**0.5*self.h*v 
-                #print v
+                print v
                 # Project back to M
                 #gamma = np.zeros(self.n-self.m + rankD)
                 #F = lambda gam: self.c(y + np.dot(Q1b,gam))
