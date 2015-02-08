@@ -15,18 +15,50 @@ def get_stat(stat_name, kwargs={}):
 def bg_attachment(x, poly_name=None, int_num=None): 
     try:
         # For Building Game intermediates. Denoted 'polyname'.
-        int_num = kwargs['int_num']
-        q0, links, lengths, faces = bga.load_bg_int(boundary_name, int_num)
+        q0, links, lengths, faces = bga.load_bg_int(poly_name, int_num)
         V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
         ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
+        verts_new, faces_new, face_inds_new = reindex_vertices(face_inds, V, dual, int_faces)
         try:
             int_faces = ints[int_num]
         except IndexError:
-            print "ERROR:", poly_name, "does not have an intermediate", int_num
-            raise
-    except ValueError, IndexError:
+            raise Exception("ERROR: " + poly_name + " does not have an intermediate " + int_num)
+    except (ValueError, IndexError):
         raise
+    
+    for k, int_face in enumerate(int_faces):
+        # Check if face already exists.
+        if int_face != 0:
+            continue
+        else:
+            # See if there are any adjacent faces.
+            attachment_sites = [] 
+            for adj_face in adj_list[int_face]:
+                if int_faces[adj_face] != 0:
+                    attachment_sites.append(adj_face)
+            # Make list of (upto 6) verticies part of attachment.
+            attachment_verts = []
+            for j in range(len(attachment_sites)-1):
+                attachment_verts
+                
 
+def find_vertex_ind(face, adj_face_1, adj_face_2, face_inds, face_inds_new):
+    """
+    Take a face and two adjacent faces that share a vertex on face. 
+    Find the vertex number corresponding to the vertex of adj_face_1 that is 
+    shared with adj_face_2 in the **completed** polyhedron.
+    """
+    ### Get vertex index in case of completed polyhedron 
+    original_ind = None
+    for vert in range(V):
+        if vert in face_inds[face] and vert in race_inds[adj_face_1] and vert in face_inds[adj_face_2]:
+            original_ind = vert
+            break
+    assert original_ind != None, "Error: common vertex not found"
+
+    ### Map index to indexing system for the current intermediate.
+    return face_inds_new[face][face_inds[face].index(original_ind)]
+    
 
 def test_1():
     """

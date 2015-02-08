@@ -39,7 +39,7 @@ class MRBM:
                  binary_boundary_kwargs={}, 
                  stat_kwargs={}, 
                  record_hist=False,
-                 hist_min=None, 
+                 hist_min=None,
                  hist_max=None, 
                  hist_bins=None,
                  err_tol=10**-15, 
@@ -50,10 +50,11 @@ class MRBM:
         
 
         # Manifold and Boundary functions
-        self.c, self.C, self.manifold_reframe, self.manifold_mod_directions = mfs.get_manifold(manifold_name, kwargs=manifold_kwargs)
+        self.c, self.C, self.manifold_reframe, self.manifold_mod_directions = mfs.get_manifold(manifold_name, 
+                                                                                               kwargs=manifold_kwargs)
 
         self.unary_boundary = bds.get_boundary(unary_boundary_name, kwargs=unary_boundary_kwargs)      
-        self.binary_boundary = bds.get_boundary(binary_boundary_name, kwargs=binary_boundary_kwargs, binary=True)      
+        self.binary_boundary = bds.get_boundary(binary_boundary_name, kwargs=binary_boundary_kwargs, binary=True) 
         self.manifold_name = manifold_name
         self.unary_boundary_name = unary_boundary_name
         self.binary_boundary_name = binary_boundary_name

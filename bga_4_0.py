@@ -623,7 +623,7 @@ def get_connected_faces(dual_v, int_faces):
 def verify_dual_order(dual):
     ###### NEEDS ADDING?!?!?! ###########
     return dual
-
+    
 def load_bg_int(poly_name, int_num):
     """
     Load information about specified polyhedral intermediate. 
@@ -633,8 +633,8 @@ def load_bg_int(poly_name, int_num):
     try: 
         poly_info = getattr(poly, poly_name)
     except AttributeError:
-        print "ERROR:", poly_name, "not found in polyhedra.py"
-        raise
+        raise Exception("ERROR: " + poly_name + " not found in polyhedra.py")
+
 
     verts, face_inds, cents = poly_info()
     V, E, F, S, species, f_types, adj_list, dual = get_poly(poly_name)
@@ -644,10 +644,46 @@ def load_bg_int(poly_name, int_num):
     try:
         int_faces = ints[int_num]
     except IndexError:
-        print "ERROR:", poly_name, "does not have an intermediate", int_num
-        raise
-
+        raise Exception("ERROR: " + poly_name + " does not have an intermediate " + int_num)
+        
     # Reindex vertices/
+    verts_new, faces, face_inds_new = reindex_vertices(face_inds, V, dual, int_faces, verts)
+    x0 = verts_new.flatten()
+
+    #face_inds_new = [[None for f in fi] for fi in face_inds]
+    #verts_new = []
+    #new_V = 0
+    #
+    #for v in range(V):
+    #    f_groups = get_connected_faces(dual[v], int_faces)
+    #    for fg in f_groups:
+    #        verts_new.append(verts[v,:])
+    #        for f in fg:
+    #            face_inds_new[f][face_inds[f].index(v)] = new_V
+    #        new_V += 1
+    #verts = np.array(verts_new)
+    #x0 = verts.flatten()
+    #
+    ##print 'A', face_inds_new
+    #faces = [f for k, f in enumerate(face_inds_new) if int_faces[k] != 0]
+
+    #print 'B',faces
+    # Make list of links.
+    links = set()
+    for face in faces:
+        #print face
+        for k in range(len(face)):
+            #print '\t', k, face[k], face[k-1]
+            links.add(frozenset([face[k], face[k-1]]))
+    links = [list(link) for link in links]
+    lengths = np.array([numpy.linalg.norm(verts_new[link[0],:] - verts_new[link[1],:]) for link in links])
+    
+    return x0, links, lengths, faces
+
+
+def reindex_vertices(face_inds, V, dual, int_faces, verts):
+    """
+    """
     face_inds_new = [[None for f in fi] for fi in face_inds]
     verts_new = []
     new_V = 0
@@ -659,25 +695,12 @@ def load_bg_int(poly_name, int_num):
             for f in fg:
                 face_inds_new[f][face_inds[f].index(v)] = new_V
             new_V += 1
-    verts = np.array(verts_new)
-    x0 = verts.flatten()
+    verts_new = np.array(verts_new)
+    x0 = verts_new.flatten()
 
     #print 'A', face_inds_new
     faces = [f for k, f in enumerate(face_inds_new) if int_faces[k] != 0]
-
-    #print 'B',faces
-    # Make list of links.
-    links = set()
-    for face in faces:
-        #print face
-        for k in range(len(face)):
-            #print '\t', k, face[k], face[k-1]
-            links.add(frozenset([face[k], face[k-1]]))
-    links = [list(link) for link in links]
-    lengths = np.array([numpy.linalg.norm(verts[link[0],:] - verts[link[1],:]) for link in links])
-    
-    return x0, links, lengths, faces
-
+    return verts_new, faces, face_inds_new
 
 #def load_bg_int(poly_name, int_num):
 #    """
