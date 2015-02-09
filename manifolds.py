@@ -59,6 +59,9 @@ def building_game(poly_name=None,
                    masses=masses, 
                    dim=dim)
 ###--------------------------------------------------------------------------
+def none():
+    return np.array([]), np.array([[]])
+###--------------------------------------------------------------------------
 def sphere(r=1.0):
     c = lambda x: sphere_c(x, r=r)
     C = lambda x: sphere_C(x, r=r)

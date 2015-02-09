@@ -182,6 +182,8 @@ class MRBM:
         """
         Draw sample according to rejection scheme.
         """
+        if self.m == 0:
+            return self.x
         x = np.copy(self.x)
         # Find Bases
         if self.manifold_mod_directions != None:
@@ -191,6 +193,9 @@ class MRBM:
         else:
             A = np.hstack((self.C(x).T, self.B))
             rankD = 0
+        if self.m - rankD == 0:
+            return self.x
+        
         Q, R = numpy.linalg.qr(A)
         # Check for full rank
         if Q.shape[1] != self.n:
