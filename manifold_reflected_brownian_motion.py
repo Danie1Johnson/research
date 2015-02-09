@@ -205,7 +205,7 @@ class MRBM:
                 v = np.dot(Q2b,alpha)
                 v /= numpy.linalg.norm(v)
                 y = x + self.d**0.5*self.h*v 
-                print v
+                #print v
                 # Project back to M
                 #gamma = np.zeros(self.n-self.m + rankD)
                 #F = lambda gam: self.c(y + np.dot(Q1b,gam))

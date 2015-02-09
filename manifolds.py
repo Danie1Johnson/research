@@ -103,6 +103,7 @@ def linkage(links=[],
             fixed_rotation=False, 
             masses=None, 
             dim=3):
+    
     c = lambda x: linkage_c(x, 
                             links=links, 
                             lengths=lengths, 
@@ -154,6 +155,7 @@ def linkage_c(q, links=[], lengths=[], fixed_inds=[], fixed_vals=[], fixed_com=F
     # Link constraints
     for i, link in enumerate(links):
         #print i, link, len(link), len(lengths)
+        #print q.shape, dim, links, lengths
         c[i+nf+ncom] = sum((q[dim*link[0]:dim*link[0] + dim] - 
                             q[dim*link[1]:dim*link[1] + dim])**2) - lengths[i]**2
     return c
@@ -162,6 +164,7 @@ def linkage_C(q, links, fixed_inds=[], fixed_com=False,  masses=None, dim=3):
     """
     Compute Jacobian matrix of c at q.
     """    
+    
     nf = len(fixed_inds)
     if fixed_com == True:
         ncom = dim
@@ -184,6 +187,10 @@ def linkage_C(q, links, fixed_inds=[], fixed_com=False,  masses=None, dim=3):
     m = len(links) + nf + ncom #+ nrot
     n = len(q)                                    
     C = np.zeros((m,n))
+    
+    assert n == dim*(1 + np.array(links).max()), "ERROR: q doesnt match number of links"
+
+
     # Fixed faces/coordinates
     for i in range(nf):
         C[i,fixed_inds[i]] = 1.0
