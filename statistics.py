@@ -6,13 +6,11 @@ import polyhedra as poly
 
 def get_stat(stat_name, kwargs={}):
     try:
-        s_fun = globals()[stat_name](**kwargs)
-        return s_fun
+        s_fun, s_str = globals()[stat_name](**kwargs)
+        return s_fun, s_str
     except KeyError, NameError:
-        print "ERROR:", stat_name, "not found."
-        raise
-
-
+        raise Exception("ERROR: " + stat_name + " not found.")
+        
 def bg_attachment(poly_name=None, int_num=None): 
     try:
         # For Building Game intermediates. Denoted 'polyname'.
@@ -32,8 +30,12 @@ def bg_attachment(poly_name=None, int_num=None):
         raise
     
     stat_faces, stat_verts = get_bg_stat_info(int_faces, adj_list, face_inds, face_inds_new)
-    
-    return lambda x: bg_attachment_fun(x, stat_verts)
+    bg_fun = lambda x: bg_attachment_fun(x, stat_verts)
+    return bg_fun, bg_stat_str(stat_faces, stat_verts)
+
+def bg_stat_str(stat_faces, stat_verts):
+    #print stat_faces, stat_verts
+    return [",".join([`x` for x in stat_faces[k]] + [`y` for y in stat_verts[k]]) for k in range(len(stat_faces))]    
 
 
 def bg_attachment_fun(x, stat_verts):
@@ -61,7 +63,7 @@ def get_bg_stat_info(int_faces, adj_list, face_inds, face_inds_new):
             # See if there are any adjacent faces.
             for j in range(len(adj_list[k])):
                 if int_faces[adj_list[k][j]] != 0 and int_faces[adj_list[k][j-1]] != 0:
-                    stat_faces.append([k, adj_list[k][j], adj_list[k][j-1]])
+                    #stat_faces.append([k, adj_list[k][j], adj_list[k][j-1]])
                     # Find relevant verticies
                     stat_verts_new = find_vertex_ind(k, 
                                                      adj_list[k][j], 
@@ -132,14 +134,14 @@ def test_1():
     Test for uniformity of dihedral angle in two linked triangles.
     """
     #return lambda x: np.array([dihedral_angle(x, 0, 2, 3, 1)]) 
-    return lambda x: np.array([signed_dihedral_angle(x, 0, 2, 3, 1)]) 
+    return lambda x: np.array([signed_dihedral_angle(x, 0, 2, 3, 1)]), None
 
 def test_2():
     """
     Test for uniformity of dihedral angle in two linked triangles.
     """
     return lambda x: np.array([signed_dihedral_angle(x, 0, 3, 4, 1), 
-                               signed_dihedral_angle(x, 3, 0, 4, 2)]) 
+                               signed_dihedral_angle(x, 3, 0, 4, 2)]), None
         
 def angle_between_edges(x, v0, v1, v2):
     """

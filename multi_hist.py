@@ -40,3 +40,9 @@ class MultiHist:
         for k in range(self.num_stats):
             self.hist[k,new_inds[k]] += 1
         
+    def hist_str(self, h_num):
+        """
+        Turn the kth histogram into a string.
+        """
+        return ','.join(`v` for v in self.hist[h_num,:])
+        

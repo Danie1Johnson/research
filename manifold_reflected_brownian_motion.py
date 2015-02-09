@@ -77,7 +77,7 @@ class MRBM:
         self.stat_name = stat_name
         if stat_name != None:
             #self.log_stats = log_stats
-            self.stat = sts.get_stat(stat_name, kwargs=stat_kwargs)
+            self.stat, self.stat_strings = sts.get_stat(stat_name, kwargs=stat_kwargs)
             self.stat_sum = np.zeros_like(self.stat(x0))
             self.stat_log = np.array([self.stat(x0)])
             self.num_stats = len(self.stat(x0))
@@ -112,7 +112,12 @@ class MRBM:
         #    self.q0, self.links, self.lengths, self.faces = bga.load_bg_int(manifold_kwargs['poly_name'], 
         #manifold_kwargs['int_num'])
 
-    def sample(self, N=1, record_trace=True, record_stats=True, progress_bar=True, bar_width=20):
+    def sample(self, 
+               N=1, 
+               record_trace=True, 
+               record_stats=True,
+               progress_bar=True, 
+               bar_width=20):
         """
         Take a time grid and boundary axis lengths and draw samples according to rejection scheme.
         """
@@ -281,6 +286,19 @@ class MRBM:
                     dim_com = np.dot(x[j::3], masses)/sum(masses)
                     x[j::3] -= dim_com
         return x
+
+
+    def write_histograms(self, filename):
+        """
+        Write recorded histograms to file 
+        """
+        with open(filename, 'wb') as f:
+            for k in range(self.hist.num_stats):
+                if self.stat_strings != None:
+                    f.write(self.stat_strings[k] + '\n')
+                f.write(self.hist.hist_str(k) + '\n')
+        
+
 
 def project_to_hyperplane(norm_amb, z, Q, x):
     """
