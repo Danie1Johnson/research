@@ -23,13 +23,14 @@ def print_sysinfo():
     print 'processor  :', platform.processor()
     print 'CPU count  :', mp.cpu_count()
     print 'interpreter:', platform.architecture()[0]
+    print
     #print '\n\n'
-    print '\n'
+    #print '\n'
 
 def get_time_str():
     dts = str(datetime.datetime.now())
     date_time_str = dts[:10] + "-" + dts[11:13] + "-" + dts[14:16]
-    
+    return date_time_str
 
 
 def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, processor_num):
@@ -121,3 +122,25 @@ stat_name = 'bg_attachment'
 verts, face_inds, cents = getattr(poly, poly_name)()
 V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
 ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
+
+num_processes = 4
+N = 10**2
+
+if __name__ == "__main__":
+    print_sysinfo()
+    print get_time_str()
+
+    # Split up ints
+    processes = [mp.Process(target=run_ints, 
+                            args=(int_groups[k], 
+                                  N, 
+                                  archive_rate, 
+                                  output_rate, 
+                                  run_str, 
+                                  k)) for k in range(num_processes)]
+
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
+    
