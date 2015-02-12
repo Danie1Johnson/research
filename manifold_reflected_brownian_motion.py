@@ -5,6 +5,8 @@ import cPickle
 import os
 import sys
 
+import dill
+
 #import manifold_reflected_brownian_motion as mrbm
 import manifolds as mfs
 import boundaries as bds
@@ -242,25 +244,38 @@ class MRBM:
 
         return x_prop
 
-    def parm_str(self, N=None, M=None, t=None):
-        pstr = self.manifold_name + "_" 
-        pstr += "n_" + str(self.n) + "_"
-        pstr += "m_" + str(self.m) + "_"
-        for a in self.manifold_kwargs.items():
-            pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
-        pstr += self.unary_boundary_name + "_"  
-        for a in self.unary_boundary_kwargs.items():
-            pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
-        pstr += "h_" + parm_to_str(self.h) + "_"
+    def archive(self, filename):
+        """
+        Use dill to archive class instance
+        """
+        with open(filename, 'wb') as f:
+            dill.dump(self, f)
 
-        if N != None:
-            pstr += "N_" + str(N)
-        if M != None:
-            pstr += "M_" + str(M)
-        if t != None:
-            pstr += "t_" + parm_to_str(t)
-        
-        return pstr[:-1]
+            
+    @staticmethod
+    def load(filename):
+        with file(filename, 'rb') as f:
+            return dill.load(f)
+
+    #def parm_str(self, N=None, M=None, t=None):
+    #    pstr = self.manifold_name + "_" 
+    #    pstr += "n_" + str(self.n) + "_"
+    #    pstr += "m_" + str(self.m) + "_"
+    #    for a in self.manifold_kwargs.items():
+    #        pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
+    #    pstr += self.unary_boundary_name + "_"  
+    #    for a in self.unary_boundary_kwargs.items():
+    #        pstr += a[0] + "_" + parm_to_str(a[1]) + "_"
+    #    pstr += "h_" + parm_to_str(self.h) + "_"
+    #
+    #    if N != None:
+    #        pstr += "N_" + str(N)
+    #    if M != None:
+    #        pstr += "M_" + str(M)
+    #    if t != None:
+    #        pstr += "t_" + parm_to_str(t)
+    #    
+    #    return pstr[:-1]
 
     def dump_trace(self):
         filename = self.pkl_filename()
