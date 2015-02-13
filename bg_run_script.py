@@ -111,7 +111,7 @@ def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, proces
 
 def output_file_name(poly_name, int_num, run_str, output_str):
     filename =  "./results/" + poly_name + "/" + poly_name + "_" 
-    filename += run_str + "_" + output_str + "_" + str(int_num) + ".csv"
+    filename += run_str + "_" + output_str + "_" + str(int_num) + ".pkl"
     return filename
 
 

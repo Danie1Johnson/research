@@ -4,6 +4,7 @@ import numpy.linalg
 import cPickle
 import os
 import sys
+import warnings
 
 import dill
 
@@ -79,7 +80,7 @@ class MRBM:
         self.stat_name = stat_name
         if stat_name != None:
             #self.log_stats = log_stats
-            self.stat, self.stat_strings = sts.get_stat(stat_name, kwargs=stat_kwargs)
+            self.stat = sts.get_stat(stat_name, kwargs=stat_kwargs)
             self.stat_sum = np.zeros_like(self.stat(x0))
             self.stat_log = np.array([self.stat(x0)])
             self.num_stats = len(self.stat(x0))
@@ -99,6 +100,7 @@ class MRBM:
         self.x = np.copy(x0)
         self.xs = np.array([np.copy(x0)])
         self.h = h
+        self.newton_failures = 0
         self.T = np.array([0.0])
         self.samples = 1
         self.d = len(x0)
@@ -201,11 +203,22 @@ class MRBM:
                 #print self.m, self.n
                 #print self.c(y).shape, self.C(y).shape
                 #print F(gamma).shape, J(gamma).shape
+
                 gamma = np.zeros(self.n-self.m)
                 F = lambda gam: self.c(y + np.dot(Q1,gam))
                 J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
-                gamma_sol = Newton(gamma, F, J, self.err_tol)
-            #x_prop = y + np.dot(Q1b,gamma_sol)
+                try:
+                    gamma_sol = Newton(gamma, F, J, self.err_tol)
+                except:
+                    self.x = self.x0
+                    self.newton_failures += 1
+                    warnings.warn("Newton iteration failed for the " 
+                                  + str(self.newton_failures) + "th time. Process reset to x0.")
+                #gammab = np.zeros(self.n-self.m + rankD)
+                #F = lambda gamb: self.c(y + np.dot(Q1b,gamb))
+                #J = lambda gamb: np.dot(self.C(y + np.dot(Q1b,gamb)),Q1b)
+                #gamma_solb = Newton(gammab, F, J, self.err_tol)
+            #x_prop = y + np.dot(Q1b,gamma_solb)
             x_prop = y + np.dot(Q1,gamma_sol)
 
             # Check if x_prop within boundaries.
@@ -282,15 +295,15 @@ class MRBM:
         return x
 
 
-    def write_histograms(self, filename):
-        """
-        Write recorded histograms to file 
-        """
-        with open(filename, 'wb') as f:
-            for k in range(self.hist.num_stats):
-                if self.stat_strings != None:
-                    f.write(self.stat_strings[k] + '\n')
-                f.write(self.hist.hist_str(k) + '\n')
+    #def write_histograms(self, filename):
+    #    """
+    #    Write recorded histograms to file 
+    #    """
+    #    with open(filename, 'wb') as f:
+    #        for k in range(self.hist.num_stats):
+    #            if self.stat_strings != None:
+    #                f.write(self.stat_strings[k] + '\n')
+    #            f.write(self.hist.hist_str(k) + '\n')
         
 
 
