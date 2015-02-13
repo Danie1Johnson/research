@@ -117,9 +117,7 @@ class MRBM:
     def sample(self, 
                N=1, 
                record_trace=True, 
-               record_stats=True,
-               progress_bar=True, 
-               bar_width=20):
+               record_stats=True):
         """
         Take a time grid and boundary axis lengths and draw samples according to rejection scheme.
         """
@@ -132,43 +130,19 @@ class MRBM:
             stat_log_run = np.zeros((len(T_run), self.num_stats))
             stat_log_run[0,:] = self.stat(self.x)
 
-        if progress_bar == True:
-            #sys.stdout.write("[%s]" % (" " * bar_width))
-            sys.stdout.write("_" * bar_width)
-            sys.stdout.write('\n')
-            sys.stdout.flush()
-            #sys.stdout.write("\b" * (bar_width+1)) 
-        else:
-            bar_width = 1
-
-        dN = N/(bar_width - 1)
-        rN = N%(bar_width - 1)
-        for b in xrange(bar_width):
-            k_min = 1+dN*b
-            if b == bar_width - 1:
-                k_max = k_min + rN
-            else:
-                k_max = k_min + dN
-            #for kt, t in enumerate(T_run[k_min:k_max]):
-            for kt in xrange(k_min,k_max):
-                self.x = self.new_rejection_sample()
-                self.samples += 1        
-                if record_trace == True:
-                    xs_run[kt,:] = self.x
-                if self.stat != None:
-                    curr_stat = self.stat(self.x)
-                    self.stat_sum += curr_stat
-                    if record_stats == True:
-                        stat_log_run[kt,:] = self.stat(self.x)
-                    if self.record_hist == True:
-                        self.hist.add_stats(curr_stat)
-            if progress_bar == True:
-                sys.stdout.write("-")
-                sys.stdout.flush()
-        if progress_bar == True:
-            sys.stdout.write("\n")
-        
-        
+        for kt in xrange(1,len(T_run)):
+            self.x = self.new_rejection_sample()
+            self.samples += 1        
+            if record_trace == True:
+                xs_run[kt,:] = self.x
+            if self.stat != None:
+                curr_stat = self.stat(self.x)
+                self.stat_sum += curr_stat
+                if record_stats == True:
+                    stat_log_run[kt,:] = self.stat(self.x)
+                if self.record_hist == True:
+                    self.hist.add_stats(curr_stat)
+                
         if record_trace == True:
             self.T = np.hstack((self.T, self.T[-1] + T_run[1:]))
             self.xs = np.vstack((self.xs, xs_run[1:,:]))
@@ -244,7 +218,7 @@ class MRBM:
 
         return x_prop
 
-    def archive(self, filename):
+    def dump(self, filename):
         """
         Use dill to archive class instance
         """

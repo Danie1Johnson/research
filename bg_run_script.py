@@ -40,7 +40,14 @@ def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, proces
     each int has N samples. Output to a non-overwritten file every
     archive_rate_iterations. 
     """
-    
+    hist_min = 0.0
+    hist_max = np.pi
+    hist_bins = 1000
+
+    err_tol = 10**-12
+    h0 = 0.05
+
+
     ### OPTIMIZE PARAMETERS
     int_dict = {}
     for int_num in int_list:
@@ -74,8 +81,8 @@ def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, proces
         
         # Initialize process 
         z = mrbm.MRBM(x0, h0, **kwargs)
-        z.optimize_parameters()
-        z.reset()
+        #z.optimize_parameters()
+        #z.reset()
         int_dict[int_num] = z
 
     ### RUN SIMULATION
@@ -89,23 +96,42 @@ def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, proces
         
         for int_num in int_list:
             int_dict[int_num].sample(N=num_new_samples)
-            int_dict.dump(output_file_name(poly_name, int_num, run_str, 'curr'))
+            int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, 'curr'))
             if num_samples == total_samples:
-                int_dict.dump(output_file_name(poly_name, int_num, run_str, 'final'))
+                int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, 'final'))
                 print "Intermediate", int_num, "completed." 
             elif num_samples/archive_rate  - (num_samples - num_new_samples)/archive_rate > 0:
-                int_dict.dump(output_file_name(poly_name, int_num, run_str, str(num_samples)))
+                int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, str(num_samples)))
                 print "Intermediate", int_num, "archive written with", num_samples, "samples." 
         print "Processor", processor_num, 
         print "completed", num_samples, "samples (",
-        print 100*round(float(total_samples)/num_samples, 3), "% )."
+        print 100*round(num_samples/float(total_samples), 3), "% )."
     print "Processor", processor_num, "finished."
         
 
 def output_file_name(poly_name, int_num, run_str, output_str):
-    filename =  "./results/" + polyname + "/" + poly_name + "_" 
+    filename =  "./results/" + poly_name + "/" + poly_name + "_" 
     filename += run_str + "_" + output_str + "_" + str(int_num) + ".csv"
     return filename
+
+
+def group_ints(num_groups, rates):
+    """
+    Split the ints 0 to len(rates) up into num_groups lists such that each list has 
+    approximately the same sum of rates.
+    """
+    target = sum(rates)/num_groups*np.arange(num_groups)
+    cum_sum = np.cumsum(rates)
+    partition = [sum(cum_sum < target[k]) for k in range(num_groups)]
+    partition.append(len(rates))
+    partition = np.array(partition)
+    int_groups = [range(partition[k],partition[k+1]) for k in range(num_groups)]
+    return int_groups
+    
+    
+def get_sample_rate(int_num, h, sample_time):
+    return 1.0
+
 
 ### SIMULATION PARAMETERS
 manifold_name = 'building_game'
@@ -124,13 +150,30 @@ V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
 ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
 
 num_processes = 4
+
 N = 10**2
+archive_rate = 50
+output_rate = 10
+
+h = 0.5
+
+sample_time = 1.0
+
+run_str = "test2"
 
 if __name__ == "__main__":
     print_sysinfo()
     print get_time_str()
 
+    # Get sample rates, find trivial intermediates
+    sample_rates = np.zeros(len(ints))
+
+    for int_num in range(len(ints)):
+        sample_rates[int_num] = get_sample_rate(int_num, h, sample_time)
+
     # Split up ints
+    int_groups = group_ints(num_processes, sample_rates)
+
     processes = [mp.Process(target=run_ints, 
                             args=(int_groups[k], 
                                   N, 
