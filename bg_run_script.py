@@ -105,7 +105,7 @@ def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, proces
                 print "Intermediate", int_num, "archive written with", num_samples, "samples." 
         print "Processor", processor_num, 
         print "completed", num_samples, "samples (",
-        print 100*round(num_samples/hfloat(total_samples), 3), "% )."
+        print 100*round(num_samples/float(total_samples), 3), "% )."
     print "Processor", processor_num, "finished."
         
 
@@ -115,17 +115,20 @@ def output_file_name(poly_name, int_num, run_str, output_str):
     return filename
 
 
-def group_ints(num_groups, rates):
+def group_ints(num_groups, int_nums, weights=None):
     """
     Split the ints 0 to len(rates) up into num_groups lists such that each list has 
     approximately the same sum of rates.
     """
-    target = sum(rates)/num_groups*np.arange(num_groups)
-    cum_sum = np.cumsum(rates)
+    if weights == None:
+        weights = np.ones_like(int_nums)
+
+    target = sum(weights)/num_groups*np.arange(num_groups)
+    cum_sum = np.cumsum(weights)
     partition = [sum(cum_sum < target[k]) for k in range(num_groups)]
-    partition.append(len(rates))
+    partition.append(len(weights))
     partition = np.array(partition)
-    int_groups = [range(partition[k],partition[k+1]) for k in range(num_groups)]
+    int_groups = [int_nums[partition[k]:partition[k+1]] for k in range(num_groups)]
     return int_groups
     
     
@@ -168,12 +171,12 @@ if __name__ == "__main__":
     # Get sample rates, find trivial intermediates
     sample_rates = np.zeros(len(ints))
 
-    for int_num in range(len(ints)):
+    for int_num in range(1,len(ints)):
         sample_rates[int_num] = get_sample_rate(int_num, h, sample_time)
 
     # Split up ints
-    int_groups = group_ints(num_processes, sample_rates)
-
+    int_groups = group_ints(num_processes, np.arange(1,len(ints)), weights=sample_rates)
+        
     processes = [mp.Process(target=run_ints, 
                             args=(int_groups[k], 
                                   N, 

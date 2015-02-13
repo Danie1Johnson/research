@@ -104,11 +104,11 @@ class MRBM:
         self.T = np.array([0.0])
         self.samples = 1
         self.d = len(x0)
-        if Sig == None:
-            self.Sig = np.eye(self.m)
-        else:
-            self.Sig = Sig
-        self.Sig_inv = numpy.linalg.inv(self.Sig)
+        #if Sig == None:
+        #    self.Sig = np.eye(self.m)
+        #else:
+        #    self.Sig = Sig
+        #self.Sig_inv = numpy.linalg.inv(self.Sig)
         self.B = numpy.random.uniform(size=(self.n,self.m))
 
         #### Handle BG vs not, better ### need to access bg info regularly? or just once?

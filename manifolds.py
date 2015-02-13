@@ -191,7 +191,11 @@ def linkage_C(q, links, fixed_inds=[], fixed_com=False,  masses=None, dim=3):
     n = len(q)                                    
     C = np.zeros((m,n))
     
-    assert n == dim*(1 + np.array(links).max()), "ERROR: q doesnt match number of links"
+    if len(links) == 0:
+        num_verts = 0
+    else:
+        num_verts = 1 + np.array(links).max()
+    assert n == dim*num_verts, "ERROR: q doesnt match number of verts"
 
 
     # Fixed faces/coordinates
