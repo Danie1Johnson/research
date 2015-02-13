@@ -105,7 +105,7 @@ def run_ints(int_list, total_samples, archive_rate, output_rate, run_str, proces
                 print "Intermediate", int_num, "archive written with", num_samples, "samples." 
         print "Processor", processor_num, 
         print "completed", num_samples, "samples (",
-        print 100*round(num_samples/float(total_samples), 3), "% )."
+        print 100*round(num_samples/hfloat(total_samples), 3), "% )."
     print "Processor", processor_num, "finished."
         
 
