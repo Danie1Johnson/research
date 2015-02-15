@@ -42,7 +42,8 @@ def run_ints(poly_name,
              run_str, 
              processor_num, 
              h, 
-             err_tol, 
+             err_tol,
+             skip_sampling,
              hist_min=0.0, 
              hist_max=2.0*np.pi/3.0, 
              hist_bins=999):
@@ -101,7 +102,8 @@ def run_ints(poly_name,
         num_samples += num_new_samples
         
         for int_num in int_list:
-            int_dict[int_num].sample(N=num_new_samples)
+            if skip_sampling[int_num] == False:
+                int_dict[int_num].sample(N=num_new_samples)
             int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, 'curr'))
             if num_samples == total_samples:
                 int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, 'final'))
@@ -118,6 +120,7 @@ def run_ints(poly_name,
 def get_bg_kwargs(poly_name, 
                   int_list, 
                   err_tol, 
+                  newton_max_itr=100,
                   fixed_com=True, 
                   fixed_rotation=True, 
                   record_hist=True, 
@@ -182,16 +185,42 @@ def group_ints(num_groups, int_nums, weights=None):
     int_groups = [int_nums[partition[k]:partition[k+1]] for k in range(num_groups)]
     return int_groups
     
-#    
-#def get_sample_rate(int_num, h, sample_time):
-    
+def get_sample_rates(poly_name, int_list, h, err_tol, samples):
+    """
+    Sample each int of poly_name in int_list for specified number of samples and 
+    return an np array with the time it took.
+    """
+    print "Drawing samples to estimate sampling rates."
+    rates = np.zeros(len(int_list))
+    skip_sampling = {int_num: True for int_num in int_list}
+    int_dict = {}
+    bg_kwargs = get_bg_kwargs(poly_name, int_list, err_tol)
+        
+    for k, int_num in enumerate(int_list):
+        x0, links, lengths, faces = bga.load_bg_int(poly_name, int_num)
+        z = mrbm.MRBM(x0, h, **bg_kwargs[int_num])
 
+        if z.num_stats == 0:
+            continue
+        if z.m <= 0:
+            continue
+        if z.m - z.manifold_mod_directions(z.x).shape[0] <= 0:
+            continue
+
+        skip_sampling[int_num] = False
+        before = time.clock()
+        z.sample(N=samples)
+        after = time.clock()
+        rates[k] = after - before
+        print int_num, z.m - z.manifold_mod_directions(z.x).shape[0], after - before
+    print '\nEstimated serial time for 1,000,000 samples:', 10**6*sum(rates)/samples/3600.0, "hours\n"
+    return rates, skip_sampling
 
 def optimize_sampling(poly_name, num_ints, err_tol):
-    hs = np.arange(0.100,0.130,0.005)
-    samples_per_trial = 10**2
+    hs = np.arange(0.030,0.065,0.005)
+    samples_per_trial = 10**3
     int_list = range(1,num_ints)
-    bg_kwargs = get_bg_kwargs(poly_name, int_list, err_tol)
+    bg_kwargs = get_bg_kwargs(poly_name, int_list, err_tol, newton_max_itr=10000)
     times = np.zeros_like(hs)
     
     int_dict = {}
@@ -202,12 +231,20 @@ def optimize_sampling(poly_name, num_ints, err_tol):
     for k, h in enumerate(hs):
         print h
         for int_num in range(1,num_ints):
+            if int_dict[int_num].num_stats == 0:
+                continue
+            if int_dict[int_num].m <= 0:
+                continue
+            if (int_dict[int_num].m - 
+                int_dict[int_num].manifold_mod_directions(int_dict[int_num].x).shape[0]) <= 0:
+                continue
             int_dict[int_num].x = int_dict[int_num].x0
             int_dict[int_num].h = h
             before = time.clock()
             int_dict[int_num].sample(N=samples_per_trial)
             after = time.clock()
             times[k] += after - before
+            print '\t', after-before, times[k]
 
     #return 0.05, np.ones(num_ints) 
     return hs, times
@@ -225,43 +262,47 @@ ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly
 num_processes = 4
 
 err_tol = 10**-12
-N = 10**2
-archive_rate = 50
-output_rate = 10
+N = 10**3
+archive_rate = 500
+output_rate = 200
+h = 0.06
 
 sample_time = 1.0
 num_ints = len(ints)
+int_list = range(1, num_ints)
 
 run_str = "test3"
 
 if __name__ == "__main__":
     print_sysinfo()
-    print get_time_str()
+    print get_time_str(), '\n'
 
     # Get sample rates, find trivial intermediates
     #h, sample_rates = optimize_sampling(poly_name, num_ints, err_tol)
-    hs, times = optimize_sampling(poly_name, num_ints, err_tol)
-    #sample_rates = np.zeros(len(ints))
+    #hs, times = optimize_sampling(poly_name, num_ints, err_tol)
+    sample_rates, skip_sampling = get_sample_rates(poly_name, int_list, h,err_tol, N)
+    
     #for int_num in range(1,len(ints)):
     #    sample_rates[int_num] = get_sample_rate(int_num, h, sample_time)
 
     # Split up ints
-    #int_groups = group_ints(num_processes, np.arange(1,len(ints)), weights=sample_rates)
+    int_groups = group_ints(num_processes, np.arange(1,len(ints)), weights=sample_rates)
         
-    #processes = [mp.Process(target=run_ints, 
-    #                        args=(poly_name,
-    #                              int_groups[k], 
-    #                              N, 
-    #                              archive_rate, 
-    #                              output_rate, 
-    #                              run_str, 
-    #                              k,
-    #                              h,
-    #                              err_tol)) for k in range(num_processes)]
+    processes = [mp.Process(target=run_ints, 
+                            args=(poly_name,
+                                  int_groups[k], 
+                                  N, 
+                                  archive_rate, 
+                                  output_rate, 
+                                  run_str, 
+                                  k,
+                                  h,
+                                  err_tol,
+                                  skip_sampling)) for k in range(num_processes)]
 
-    #for p in processes:
-    #    p.start()
-    #for p in processes:
-    #    p.join()
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
     
 

@@ -45,12 +45,12 @@ class MRBM:
                  hist_min=None,
                  hist_max=None, 
                  hist_bins=None,
-                 err_tol=10**-15, 
-                 Sig=None):
+                 err_tol=10**-15,
+                 newton_max_itr=100):
         """
         """
         self.err_tol = err_tol
-        
+        self.newton_max_itr = newton_max_itr
 
         # Manifold and Boundary functions
         self.c, self.C, self.manifold_reframe, self.manifold_mod_directions = mfs.get_manifold(manifold_name, 
@@ -161,6 +161,7 @@ class MRBM:
         Draw sample according to rejection scheme.
         """
         if self.m == 0:
+            warnings.warn("Zero degrees of freedom. Trivial sampling avoided.")
             return self.x
         x = np.copy(self.x)
         # Find Bases
@@ -172,6 +173,7 @@ class MRBM:
             A = np.hstack((self.C(x).T, self.B))
             rankD = 0
         if self.m - rankD == 0:
+            warnings.warn("Zero degrees of freedom with added constraints. Trivial sampling avoided.")
             return self.x
         
         Q, R = numpy.linalg.qr(A)
@@ -208,7 +210,7 @@ class MRBM:
                 F = lambda gam: self.c(y + np.dot(Q1,gam))
                 J = lambda gam: np.dot(self.C(y + np.dot(Q1,gam)),Q1)
                 try:
-                    gamma_sol = Newton(gamma, F, J, self.err_tol)
+                    gamma_sol = Newton(gamma, F, J, self.err_tol, max_itr=self.newton_max_itr)
                 except:
                     self.x = self.x0
                     self.newton_failures += 1
@@ -337,7 +339,7 @@ def Newton(x0, F, J, err_tol, max_itr=100):
         x += dx
         #yprint k
         
-    raise Exception("ERROR: Maximum iteration exceeded in 'Newton'.")
+    raise Exception("ERROR: Maximum iteration exceeded in 'Newton':"+str(max_itr))
         
 def parm_to_str(x, dec_len=4):
     if isinstance(x, np.ndarray):
