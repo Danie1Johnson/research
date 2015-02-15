@@ -23,11 +23,11 @@ class MultiHist:
             inds[k] = self.get_ind(stats[k])
         return inds
 
-    def get_ind(self, stat):
+    def get_ind(self, stat, err_tol=10**-12):
         """
         For a scalar stat, return the index number for its bin. 
         """
-        if stat < self.min_val or stat > self.max_val:
+        if stat < self.min_val - err_tol or stat > self.max_val + err_tol:
             raise Exception("ERROR: stat outside of histogram range " 
                             + str(self.min_val) + " <  " + str(stat) + " < " + str(self.max_val))
         return int(self.num_bins*(stat - self.min_val)/(self.max_val - self.min_val))

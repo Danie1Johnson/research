@@ -264,23 +264,23 @@ class MRBM:
     #    
     #    return pstr[:-1]
 
-    def dump_trace(self):
-        filename = self.pkl_filename()
-        if os.path.isfile(filename):
-            print "File", filename, "already exists. Nothing written."
-        else:
-            cPickle.dump(self.xs, open(filename, 'wb'))
+    #def dump_trace(self):
+    #    filename = self.pkl_filename()
+    #    if os.path.isfile(filename):
+    #        print "File", filename, "already exists. Nothing written."
+    #    else:
+    #        cPickle.dump(self.xs, open(filename, 'wb'))
+    #
+    #def load_trace(self):
+    #    filename = self.pkl_filename()
+    #    try:
+    #        self.xs = cPickle.load(open(filename, 'rb'))
+    #        return True
+    #    except IOError:
+    #        return False
 
-    def load_trace(self):
-        filename = self.pkl_filename()
-        try:
-            self.xs = cPickle.load(open(filename, 'rb'))
-            return True
-        except IOError:
-            return False
-
-    def pkl_filename(self):
-        return self.parm_str(**self.run_args) + ".pkl"
+    #def pkl_filename(self):
+    #    return self.parm_str(**self.run_args) + ".pkl"
 
     def recenter(self, x):
         if 'fixed_com' in self.manifold_kwargs:
