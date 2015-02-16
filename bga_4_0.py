@@ -405,6 +405,21 @@ def same_int(x1,x2,Rs):
 
     return False
 
+def find_int_num(x, ints, Rs):
+    """
+    For binary vector x of faces present determine which bg int (if any)  x belongs to. 
+    """
+    num_faces = sum(x >= 1)
+    for k, int_k in enumerate(ints):
+        if sum(int_k >= 1) != num_faces:
+            continue
+        else:
+            if same_int(x, int_k, Rs) == True:
+                return k
+    return None
+
+
+
 def get_rs(ints,adj_list,Rs=None):
     """
     Compute the order of the rotation group for each intermediate.

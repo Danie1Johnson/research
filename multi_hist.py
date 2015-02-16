@@ -46,3 +46,12 @@ class MultiHist:
         """
         return ','.join(`v` for v in self.hist[h_num,:])
         
+    
+    def rates(self, ang, epsilon):
+        """
+        Get probability mass of samples within epsilon of ang for each stat.
+        """
+        bin_a = self.get_ind(ang - epsilon)
+        bin_b = self.get_ind(ang + epsilon)
+
+        return self.hist[:,bin_a:bin_b+1].sum(axis=1)/float(self.hist[0,:].sum())
