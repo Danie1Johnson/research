@@ -43,10 +43,7 @@ def run_ints(poly_name,
              processor_num, 
              h, 
              err_tol,
-             skip_sampling,
-             hist_min=0.0, 
-             hist_max=2.0*np.pi/3.0, 
-             hist_bins=999):
+             skip_sampling):
     """
     Get list of ints to run. Create MRBM instance for each int.
     Run each int for output_rate samples and dump data. Repeat until 
@@ -126,7 +123,7 @@ def get_bg_kwargs(poly_name,
                   record_hist=True, 
                   hist_min=0.0, 
                   hist_max=np.pi, 
-                  hist_bins=1001,
+                  hist_bins=999,
                   manifold_name='building_game',
                   unary_boundary_name='self_intersection',
                   binary_boundary_name='dihedrals',
@@ -259,13 +256,13 @@ verts, face_inds, cents = getattr(poly, poly_name)()
 V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
 ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
 
-num_processes = 4
+num_processes = 8
 
 err_tol = 10**-12
-N = 10**3
-archive_rate = 500
-output_rate = 200
-h = 0.06
+N = 10**2
+archive_rate = 5000
+output_rate = 2000
+h = 0.05
 
 sample_time = 1.0
 num_ints = len(ints)
@@ -280,7 +277,7 @@ if __name__ == "__main__":
     # Get sample rates, find trivial intermediates
     #h, sample_rates = optimize_sampling(poly_name, num_ints, err_tol)
     #hs, times = optimize_sampling(poly_name, num_ints, err_tol)
-    sample_rates, skip_sampling = get_sample_rates(poly_name, int_list, h,err_tol, N)
+    sample_rates, skip_sampling = get_sample_rates(poly_name, int_list, h,err_tol, 10**3)
     
     #for int_num in range(1,len(ints)):
     #    sample_rates[int_num] = get_sample_rate(int_num, h, sample_time)
