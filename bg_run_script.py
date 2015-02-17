@@ -256,19 +256,19 @@ verts, face_inds, cents = getattr(poly, poly_name)()
 V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
 ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
 
-num_processes = 8
+num_processes = 4
 
 err_tol = 10**-12
-N = 10**2
-archive_rate = 5000
-output_rate = 2000
+N = 10**7
+archive_rate = 10**6
+output_rate = 10**5
 h = 0.05
 
 sample_time = 1.0
 num_ints = len(ints)
 int_list = range(1, num_ints)
 
-run_str = "test3"
+run_str = "test4"
 
 if __name__ == "__main__":
     print_sysinfo()
