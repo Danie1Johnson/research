@@ -100,7 +100,7 @@ def run_ints(poly_name,
         
         for int_num in int_list:
             if skip_sampling[int_num] == False:
-                int_dict[int_num].sample(N=num_new_samples)
+                int_dict[int_num].sample(N=num_new_samples, record_trace=False, record_stats=False)
             int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, 'curr'))
             if num_samples == total_samples:
                 int_dict[int_num].dump(output_file_name(poly_name, int_num, run_str, 'final'))
@@ -206,7 +206,7 @@ def get_sample_rates(poly_name, int_list, h, err_tol, samples):
 
         skip_sampling[int_num] = False
         before = time.clock()
-        z.sample(N=samples)
+        z.sample(N=samples, record_trace=False, record_stats=False)
         after = time.clock()
         rates[k] = after - before
         print int_num, z.m - z.manifold_mod_directions(z.x).shape[0], after - before
@@ -238,7 +238,7 @@ def optimize_sampling(poly_name, num_ints, err_tol):
             int_dict[int_num].x = int_dict[int_num].x0
             int_dict[int_num].h = h
             before = time.clock()
-            int_dict[int_num].sample(N=samples_per_trial)
+            int_dict[int_num].sample(N=samples_per_trial, record_trace=False, record_stats=False)
             after = time.clock()
             times[k] += after - before
             print '\t', after-before, times[k]

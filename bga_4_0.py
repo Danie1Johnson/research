@@ -13,16 +13,7 @@ import sys
 import math
 from time import time
 
-
-
-
-
-
-
-
-#import numpy as np
 import matplotlib.pyplot as plt
-#from time import time
 import matplotlib.animation as animation
 
 import manifold_reflected_brownian_motion as mrbm
@@ -221,7 +212,7 @@ def get_open_edges(ints,adj_list):
 
     return np.array(Es)
 
-def get_closed_edges(ints,adj_list):
+def get_closed_edges(ints, adj_list):
     """
     For each intermediate in ints, return the number of closed edges it has.
     """
@@ -232,15 +223,14 @@ def get_closed_edges(ints,adj_list):
         for k in range(len(inter)):
             if inter[k] == 1:
                for j in adj_list[k]:
-                   if inter[j] == 1:
-                       E += 0.5 # Beacause of double counting
-
+                   if inter[j] == 1 and j < k:
+                       E += 1
         Es.append(E)
 
     return np.array(Es)
 
 
-def get_degeneracies(ints,edges,adj_list,Rs=None):
+def get_degeneracies(ints, edges, adj_list, Rs=None):
     """
     For each BGSS connection in edges, compute the forward and backward degeneracy numbers.
     """

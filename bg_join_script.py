@@ -50,21 +50,38 @@ def find_sim_edge_relations(int_dict, edges):
 
     return edge_rate_inds
 
+def transision_energies(Es, edges):
+    """
+    Return E_j the value of Es at each of the first int in edges and E_k the second 
+    """
+    E_j = np.zeros(len(edges))    
+    E_k = np.zeros(len(edges))
 
-def get_rates(epsilon, beta, int_dict, edges, edge_rate_inds, Ss, Ts):
+    for i, edge in enumerate(edges):
+        E_j[i] = Es[edge[0]]
+        E_k[i] = Es[edge[1]]
+    
+    return E_j, E_k
+
+def get_rates(epsilon, beta, int_dict, edges, edge_rate_inds, E_j, E_k, Ss, Ts):
     """
     Compute forward and then backward transition rates for bgss.
     """
     forward_rates = np.zeros(len(edges))
     backward_rates = np.zeros(len(edges))
 
+    
     for k, e in enumerate(edges):
         if len(edge_rate_inds[tuple(e)]) == 0:
             forward_rates[k] = 1.0
         else:
-            forward_rates[k] = get_rate(e[0], edge_rate_inds[tuple(e)], int_dict)
+            forward_rates[k] = get_rate(epsilon, e[0], edge_rate_inds[tuple(e)], int_dict)
             
     forward_rates *= Ss
+    E_jk = E_j - (1.0/beta)*np.log(forward_rates/Ss)
+    backward_rates = Ts*np.exp(-beta*(E_jk - E_k))
+
+    return forward_rates, backward_rates, E_jk
 
 def get_rate(epsilon, int_num, stat_inds, int_dict):
     """
@@ -82,18 +99,35 @@ output_str = "final"
 
 run_str = "test3"
 
-verts, face_inds, cents = getattr(poly, poly_name)()
-V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
-ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
-Rs = bga.generate_rotations(adj_list)
-
-num_ints = len(ints)
-
 if __name__ == "__main__":
 
+    verts, face_inds, cents = getattr(poly, poly_name)()
+    V, E, F, S, species, f_types, adj_list, dual = bga.get_poly(poly_name)
+    ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly_name)
+    Rs = bga.generate_rotations(adj_list)
+
+    num_ints = len(ints)
+
+    Ss, Ts = bga.get_degeneracies(ints, edges, adj_list, Rs=Rs)
+    Es = -bga.get_closed_edges(ints, adj_list)
+    E_j, E_k = transision_energies(Es, edges)
 
     int_dict = load_ints(poly_name, run_str, output_str)
     
     edge_rate_inds = find_sim_edge_relations(int_dict, edges)
     
-    
+    epsilon = 0.1
+    beta = 1.0
+
+    forward_rates, backward_rates, E_jk = get_rates(epsilon, 
+                                              beta, 
+                                              int_dict, 
+                                              edges, 
+                                              edge_rate_inds, 
+                                              E_j, 
+                                              E_k, 
+                                              Ss, 
+                                              Ts)
+
+
+
