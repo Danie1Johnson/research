@@ -462,8 +462,31 @@ def get_Q(BG_cons, betas=1.0, alpha=1.0):
 
     return scipy.sparse.coo_matrix((Q_dat,(Q_j,Q_k)), shape=(N,N)).tocsc()
 
+def get_dist(Q, T, num_times):
+    """
+    Return 2d array with analytic solution for the dist on each intermediate starting from int 0.
+    """
+    N = Q.shape[0]
 
-def get_taus(Q, A=None):
+    u0 = np.zeros(N)
+    u0[0] = 1.0
+
+    # Identity matrix excpt with M_j,j = 0 for if j in A
+    Ident_Ac = scipy.sparse.coo_matrix((np.ones(N-1),(np.arange(N-1),np.arange(N-1))), shape=(N,N))
+
+    Ident_Ac = Ident_Ac.tocsc()
+    Q = Q.tocsc()
+    
+    P = scipy.sparse.linalg.expm_multiply(Q, 
+                                          u0, 
+                                          start=0.0, 
+                                          stop=T, 
+                                          num=num_times, 
+                                          endpoint=True)
+
+    return P
+
+def get_taus(Q, N, A=None):
     """
     """
 
