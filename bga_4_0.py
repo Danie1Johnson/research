@@ -195,6 +195,69 @@ def print_oeis_format(v, sc=False):
     print '%A _Daniel Johnson_'
     
     
+
+def edge_adj_list(edges):
+    """
+    Take list of edge pairs and populate a forward adjacency list.
+    """
+    num_ints = 1 + max(max(e) for e in edges)
+    
+    edge_adj_list = [[] for k in range(num_ints)]
+
+    for e in edges:
+        edge_adj_list[min(e[0], e[1])].append(max(e[0],e[1]))
+
+    return edge_adj_list
+
+def get_paths(edges, ints, shell_int=None, shellable=False):
+    """
+    Find number of pathways to each intermediate.
+    """
+    
+    int_sizes = [sum(np.array(int_j) != 0) for int_j in ints]
+    edge_adj = edge_adj_list(edges)
+
+    # Initialize single faced ints to 1 path
+    paths = [int(sum(np.array(int_j) != 0) == 1) for int_j in ints]
+    F = len(ints[0])
+    for n in range(1,F):
+        for i in range(len(ints)):
+            if int_sizes[i] == n:
+                for k in edge_adj[i]:
+                    #print n, i, k
+                    if shellable == True:
+                        if shell_int[i] != 0 and shell_int[k] != 0:
+                            paths[k] += paths[i]
+                    else:
+                        paths[k] += paths[i]
+                
+    return paths
+
+
+def get_shellings(edges, ints, Ss, shell_int):
+    """
+    Find number of pathways to each intermediate.
+    """
+    
+    int_sizes = [sum(np.array(int_j) != 0) for int_j in ints]
+    edge_adj = edge_adj_list(edges)
+
+    # Initialize single faced ints to 1 path
+    paths = [int(sum(np.array(int_j) != 0) == 1) for int_j in ints]
+    F = len(ints[0])
+    for n in range(1,F):
+        for i in range(len(ints)):
+            if int_sizes[i] == n:
+                for k in edge_adj[i]:
+                    #print n, i, k
+                    if shellable == True:
+                        if shell_int[i] != 0 and shell_int[k] != 0:
+                            paths[k] += paths[i]
+                    else:
+                        paths[k] += paths[i]
+                
+    return paths
+
 def get_open_edges(ints,adj_list):
     """
     For each intermediate in ints, return the number of open edges it has.
