@@ -13,6 +13,7 @@ import sys
 import math
 from time import time
 
+import mpmath as mp
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -213,12 +214,14 @@ def get_paths(edges, ints, shell_int=None, shellable=False):
     """
     Find number of pathways to each intermediate.
     """
+
+    mp.mp.dps = 100
     
     int_sizes = [sum(np.array(int_j) != 0) for int_j in ints]
     edge_adj = edge_adj_list(edges)
 
     # Initialize single faced ints to 1 path
-    paths = [int(sum(np.array(int_j) != 0) == 1) for int_j in ints]
+    paths = [mp.mpf(int(sum(np.array(int_j) != 0) == 1)) for int_j in ints]
     F = len(ints[0])
     for n in range(1,F):
         for i in range(len(ints)):
