@@ -197,18 +197,23 @@ def print_oeis_format(v, sc=False):
     
     
 
-def edge_adj_list(edges):
+def edge_adj_list(edges, inds=False):
     """
     Take list of edge pairs and populate a forward adjacency list.
     """
     num_ints = 1 + max(max(e) for e in edges)
     
     edge_adj_list = [[] for k in range(num_ints)]
+    edge_adj_inds = [[] for k in range(num_ints)]
 
-    for e in edges:
+    for k, e in enumerate(edges):
         edge_adj_list[min(e[0], e[1])].append(max(e[0],e[1]))
+        edge_adj_inds[min(e[0], e[1])].append(k)
 
-    return edge_adj_list
+    if inds == True:
+        return edge_adj_list, edge_adj_inds
+    else:
+        return edge_adj_list
 
 def get_paths(edges, ints, shell_int=None, shellable=False):
     """
@@ -237,29 +242,32 @@ def get_paths(edges, ints, shell_int=None, shellable=False):
     return paths
 
 
-def get_shellings(edges, ints, Ss, shell_int):
+def get_shellings(edges, ints, Ss, shell_int, poly_adj_list):
     """
     Find number of pathways to each intermediate.
     """
-    
-    int_sizes = [sum(np.array(int_j) != 0) for int_j in ints]
-    edge_adj = edge_adj_list(edges)
+    mp.mp.dps = 100
 
-    # Initialize single faced ints to 1 path
-    paths = [int(sum(np.array(int_j) != 0) == 1) for int_j in ints]
+    Rs = Rs = generate_rotations(poly_adj_list)
+    int_sizes = [sum(np.array(int_j) != 0) for int_j in ints]
+    edge_adj, edge_adj_inds = edge_adj_list(edges, inds=True)
+    
+    # Initialize single faced ints 
+    #shells = [int(sum(np.array(int_j) != 0) == 1) for int_j in ints]
+    shells = np.zeros(len(ints))
+    for m in range(len(ints)):
+        if int_size[m] == 1:
+            shells[m] = len(Rs)/get_r(Rs, inter)
+    
     F = len(ints[0])
     for n in range(1,F):
         for i in range(len(ints)):
             if int_sizes[i] == n:
-                for k in edge_adj[i]:
-                    #print n, i, k
-                    if shellable == True:
-                        if shell_int[i] != 0 and shell_int[k] != 0:
-                            paths[k] += paths[i]
-                    else:
-                        paths[k] += paths[i]
+                for ind, k in enumerate(edge_adj[i]):
+                    if shell_int[i] != 0 and shell_int[k] != 0:
+                        shells[k] += shells[i]*Ss[inds]
                 
-    return paths
+    return shells
 
 def get_open_edges(ints,adj_list):
     """
@@ -485,15 +493,21 @@ def get_rs(ints,adj_list,Rs=None):
     rs = []
 
     for inter in ints:
-        r = 0
-        for R in Rs:
-            if numpy.linalg.norm(inter - np.array([inter[R[k]] for k in range(len(inter))])) == 0:
-                r += 1
-        rs.append(r)
+        #r = 0
+        #for R in Rs:
+        #    if numpy.linalg.norm(inter - np.array([inter[R[k]] for k in range(len(inter))])) == 0:
+        #        r += 1
+        #rs.append(r)
+        rs.append(get_r(Rs, inter))
 
     return np.array(rs)
 
-
+def get_r(Rs, inter):
+    r = 0
+    for R in Rs:
+        if numpy.linalg.norm(inter - np.array([inter[R[k]] for k in range(len(inter))])) == 0:
+            r += 1
+    return r
 
 
 def get_Q(BG_cons, betas=1.0, alpha=1.0):
