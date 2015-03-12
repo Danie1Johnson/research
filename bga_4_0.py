@@ -254,10 +254,10 @@ def get_shellings(edges, ints, Ss, shell_int, poly_adj_list):
     
     # Initialize single faced ints 
     #shells = [int(sum(np.array(int_j) != 0) == 1) for int_j in ints]
-    shells = np.zeros(len(ints))
+    shells = [mp.mpf(0.0) for x in ints]
     for m in range(len(ints)):
-        if int_size[m] == 1:
-            shells[m] = len(Rs)/get_r(Rs, inter)
+        if int_sizes[m] == 1:
+            shells[m] += len(Rs)/get_r(Rs, ints[m])
     
     F = len(ints[0])
     for n in range(1,F):
@@ -265,7 +265,8 @@ def get_shellings(edges, ints, Ss, shell_int, poly_adj_list):
             if int_sizes[i] == n:
                 for ind, k in enumerate(edge_adj[i]):
                     if shell_int[i] != 0 and shell_int[k] != 0:
-                        shells[k] += shells[i]*Ss[inds]
+                        #print 'hi'
+                        shells[k] += shells[i]*Ss[edge_adj_inds[i][ind]]
                 
     return shells
 
