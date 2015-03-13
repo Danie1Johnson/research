@@ -434,8 +434,9 @@ def get_chis(x1,x2,Rs):
     Purmute the entries of x2 (according to a polyhedral rotation) such that 
     x1 is a sub int of x2.
     """
-    if sum(x1) + 1 != sum(x2):
-        print 'ERROR: non-coresponding x1 and x2, wrong number of faces.'
+    if sum(x > 0 for x in x1) + 1 != sum(y > 0 for y in x2):
+        print 'ERROR: non-coresponding x1 and x2, wrong number of faces.' 
+        print x1, x2
 
     chi_j = x1
 
@@ -455,7 +456,9 @@ def sub_int(x1,x2):
     """
     Check if x1 == x2 in all entries except for exactly one.
     """
-    if numpy.linalg.norm(x1 + x2) == (4*sum(x1)+1)**0.5:
+    #if numpy.linalg.norm(x1 + x2) == (4*sum(x1)+1)**0.5:
+    #    return True
+    if sum((x1[k] != 0) != (x2[k] != 0) for k in range(len(x1))) == 1:
         return True
     return False
 
@@ -465,9 +468,10 @@ def same_int(x1,x2,Rs):
     Check if x1 is a polyhedral rotation of x2.
     """
     for R in Rs:
-        if numpy.linalg.norm(np.array([x1[R[k]] for k in range(len(R))]) - x2) == 0:
+        #if numpy.linalg.norm(np.array([x1[R[k]] for k in range(len(R))]) - np.array(x2)) == 0:
+        #    return True
+        if sum((x1[R[k]] != 0) != (x2[k] != 0) for k in range(len(x2))) == 0:
             return True
-
     return False
 
 def find_int_num(x, ints, Rs):
