@@ -72,7 +72,7 @@ def get_poly(poly_name):
     return V,E,F,S,species,f_types,adj_list,dual
     
 
-def get_bg_ss(poly_name):
+def get_bg_ss(poly_name, get_degens=False):
     """
     Read BG state space from file.
     """
@@ -107,14 +107,23 @@ def get_bg_ss(poly_name):
     E = int(edge_line[-1])
     edges = []
     shell_edge = []
+    if get_degens == True:
+        degens = []
     for j in range(E):
         line = [int(x) for x in f.readline().split()]
         edges.append(line[0:2])
         shell_edge.append(line[2])
+        if get_degens == True:
+            degens.append(line[3])
+
     edges = np.array(edges)
     shell_edge = np.array(shell_edge)
-    
-    return ints, ids, paths, shell_int, shell_paths, edges, shell_edge
+
+
+    if get_degens == True:
+        return ints, ids, paths, shell_int, shell_paths, edges, shell_edge, degens
+    else:
+        return ints, ids, paths, shell_int, shell_paths, edges, shell_edge
 
 def get_bg_log(poly_name):
     """
@@ -341,6 +350,95 @@ def get_degeneracies(ints, edges, adj_list, Rs=None):
     return np.array(Ss), np.array(Ts)
 
 
+#def generate_rotations(adj_list):
+#    """
+#    Generate a list of index permutations corresponding to the 
+#    rotation group of adj_list's polyhedron.
+#    """
+#    rotations = []
+#    
+#    F = len(adj_list)
+#    
+#    for j in range(F):
+#        for k in range(len(adj_list[j])):
+#            ind = rotate_ind(j,k,adj_list)
+#            if ind == None:
+#                continue
+#            rotations.append(ind)
+#
+#    return rotations
+#
+#def rotate_ind(piv,r,adj_list):
+#    """
+#    Get index permutation coresponding to moving face 0 to piv 
+#    and rotating that face in adj_list r times.
+#    """
+#    f = 0
+#    F = len(adj_list)
+#    
+#    prev = []
+#    nxt = []
+#    ind = [None for x in range(F)]
+#    
+#    if piv >= F:
+#        raise Exception("bad piv!")
+#    
+#    # For reindexing, recenter at piv
+#    ind[0] = piv
+#    f += 1
+#
+#    # Number of faces adjacent to piv (must be the same for [0] and [piv])
+#    N = len(adj_list[0]) 
+#    
+#    # If base faces different, return error
+#    if len(adj_list[0]) != len(adj_list[piv]):
+#        return None
+#    
+#    # Fill in indices for faces adjacent to piv
+#    for j in range(N):
+#        ind[adj_list[0][j]] = adj_list[piv][(r+j-1+N)%N]
+#        prev.append(adj_list[0][j])
+#        f += 1
+#
+#    while f < F:
+#        if len(prev) == 0:
+#            print "ERROR, inf-loop"
+#            break
+#        
+#        for k in range(len(prev)):
+#            Nk = len(adj_list[prev[k]])
+#
+#            for h in range(Nk):
+#                # Find already indexed face
+#                i = adj_list[prev[k]][h]
+#                if ind[i] != -1:
+#                    break
+#                
+#            for q in range(Nk):
+#                if adj_list[ind[prev[k]]][q] == ind[i]:
+#                    break
+#
+#            for g in range(Nk):
+#                map_from = adj_list[prev[k]][(h+g)%Nk]
+#                map_to = adj_list[ind[prev[k]]][(q+g)%Nk]
+#
+#                # Check if already indexed 
+#                if ind[map_from] != -1:
+#                    if ind[map_from] != map_to:
+#                        return None
+#
+#                else:
+#                    # If not, add index
+#                    ind[map_from] = map_to
+#                    nxt.append(map_from)
+#                    f += 1
+#              
+#        prev = []
+#        prev = copy.copy(nxt)
+#        nxt = []
+#    return ind
+#
+
 def generate_rotations(adj_list):
     """
     Generate a list of index permutations corresponding to the 
@@ -352,8 +450,11 @@ def generate_rotations(adj_list):
     
     for j in range(F):
         for k in range(len(adj_list[j])):
-            ind = rotate_ind(j,k,adj_list)
-            if ind[0] == -2:
+            try:
+                ind = rotate_ind(j,k,adj_list)
+                if ind[0] == -2:
+                    continue
+            except:
                 continue
             rotations.append(ind)
 
@@ -403,14 +504,17 @@ def rotate_ind(piv,r,adj_list):
                 # Find already indexed face
                 i = adj_list[prev[k]][h]
                 if ind[i] != -1:
+                    #print 'a'
                     break
                 
             for q in range(Nk):
                 if adj_list[ind[prev[k]]][q] == ind[i]:
+                    #print 'b'
                     break
 
             for g in range(Nk):
                 map_from = adj_list[prev[k]][(h+g)%Nk]
+                #print k, g, Nk, ind[prev[k]], len(adj_list), len(adj_list[ind[prev[k]]]), (q+g)%Nk 
                 map_to = adj_list[ind[prev[k]]][(q+g)%Nk]
 
                 # Check if already indexed 
@@ -428,6 +532,7 @@ def rotate_ind(piv,r,adj_list):
         prev = copy.copy(nxt)
         nxt = []
     return ind
+
 
 def get_chis(x1,x2,Rs):
     """
