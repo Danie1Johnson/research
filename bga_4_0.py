@@ -1072,6 +1072,31 @@ def bg_animation(bg_int, faces, save_animation=False, L=1.0):
 
     plt.show()
 
+
+def plot_polyhedron(v, f_inds, inter=np.array([])):
+    if len(inter) == 0:
+        inter = np.ones((len(f_inds),1))
+    ax = Axes3D(plt.figure())
+    scale = np.abs(v).max()*1.2
+    ax.set_xlim(-scale,scale)
+    ax.set_ylim(-scale,scale)
+    ax.set_zlim(-scale,scale)
+    for i in range(len(f_inds)):
+        if inter[i] != 0:
+            side = []
+            for j in range(len(f_inds[i])):
+                #side1 = [[0.,0.,0.],[0.,0.,1.],[0.,1.,1.],[0.,1.,0.]]
+                side.append([v[f_inds[i][j],0],v[f_inds[i][j],1],v[f_inds[i][j],2]])
+
+            tri = Poly3DCollection([side])
+            color = colors.rgb2hex(sp.rand(3))
+            tri.set_facecolor(color)
+            tri.set_edgecolor('k')
+
+            ax.add_collection3d(tri)
+
+    plt.show()
+
 def find_dihedrals(f1, f2, x, faces):
     """
     Take the index of two faces of a BG intermediate and compute the dihedral angle between them
@@ -1088,6 +1113,251 @@ def triangle_normal(f, x, faces):
     v2 = x[3*faces[f][2]:3*faces[f][2]+3] - x[3*faces[f][1]:3*faces[f][1]+3] 
     n = np.cross(v1, v2)
     return n/numpy.linalg.norm(n)
+
+
+def first_face(inter):
+    for k,x in enumerate(inter):
+        if x != 0:
+            return k
+    return -1
+
+
+def face_constraints(v,i0,i1,i2,ik,g0,g1,g2,gk,N):
+    #N = 3*v.shape[0]
+    # Template vertices
+    t0 = v[i0,:].T
+    t1 = v[i1,:].T
+    t2 = v[i2,:].T
+    tk = v[ik,:].T
+    # Face vertices
+    v0 = v[i0,:].T
+    v1 = v[i1,:].T
+    v2 = v[i2,:].T
+    vk = v[ik,:].T
+    # Constants
+    gamma = 1.0/numpy.linalg.norm(np.cross(v0-v1,v2-v1))
+    tau = numpy.linalg.norm(tk-t1)/numpy.linalg.norm(t0-t1)
+    theta = math.acos(np.dot(tk-t1,t0-t1)/(numpy.linalg.norm(tk-t1)*numpy.linalg.norm(t0-t1)))
+    #theta = -acos(np.dot(tk-t1,t0-t1)/(numpy.linalg.norm(tk-t1)*numpy.linalg.norm(t0-t1)))
+    # Normal
+    n = np.cross(v0-v1,v2-v1)*gamma
+
+    #print "cross calc", v0-v1,v2-v1,gamma
+    # Rotation matrix
+    R = np.zeros((3,3))
+
+    R[0,0] = np.cos(theta) + n[0]**2*(1-np.cos(theta))
+    R[1,0] = n[1]*n[0]*(1-np.cos(theta)) + n[2]*np.sin(theta)
+    R[2,0] = n[2]*n[0]*(1-np.cos(theta)) - n[1]*np.sin(theta)
+
+    R[0,1] = n[0]*n[1]*(1-np.cos(theta)) - n[2]*np.sin(theta)
+    R[1,1] = np.cos(theta) + n[1]**2*(1-np.cos(theta))
+    R[2,1] = n[2]*n[1]*(1-np.cos(theta)) + n[0]*np.sin(theta)
+
+    R[0,2] = n[0]*n[2]*(1-np.cos(theta)) + n[1]*np.sin(theta)
+    R[1,2] = n[1]*n[2]*(1-np.cos(theta)) - n[0]*np.sin(theta)
+    R[2,2] = np.cos(theta) + n[2]**2*(1-np.cos(theta))
+
+    #rotate to see if got the right rotation
+    #print "v0,v1,v2,vk",v0,v1,v2,vk
+    #print "gamma, theta, tau",gamma,theta,tau
+    #print "normal",n
+    #vk_hat = v1 + np.dot(R.T,v0-v1)*tau
+    vk_hat = v1 + np.dot(R,v0-v1)*tau
+    #print "vks",vk,vk_hat
+
+    # Normal Jacobian
+    K = np.zeros((3,9))
+
+    K[0,0] = gamma*0
+    K[1,0] = gamma*(-v2[2]+v1[2])
+    K[2,0] = gamma*(+v2[1]-v1[1])
+
+    K[0,1] = gamma*(+v2[2]-v1[2])
+    K[1,1] = gamma*0
+    K[2,1] = gamma*(-v2[0]+v1[0])
+
+    K[0,2] = gamma*(-v2[1]+v1[1])
+    K[1,2] = gamma*(+v2[0]-v1[0])
+    K[2,2] = gamma*0
+
+    K[0,3] = gamma*0
+    K[1,3] = gamma*(+v2[2]-v0[2])
+    K[2,3] = gamma*(-v2[1]+v0[1])
+
+    K[0,4] = gamma*(-v2[2]+v0[2])
+    K[1,4] = gamma*0
+    K[2,4] = gamma*(+v2[0]-v0[0])
+
+    K[0,5] = gamma*(+v2[1]-v0[1])
+    K[1,5] = gamma*(-v2[0]+v0[0])
+    K[2,5] = gamma*0
+
+    K[0,6] = gamma*0
+    K[1,6] = gamma*(+v0[2]-v1[2])
+    K[2,6] = gamma*(-v0[1]+v1[1])
+
+    K[0,7] = gamma*(-v0[2]+v1[2])
+    K[1,7] = gamma*0
+    K[2,7] = gamma*(+v0[0]-v1[0])
+
+    K[0,8] = gamma*(+v0[1]-v1[1])
+    K[1,8] = gamma*(-v0[0]+v1[0])
+    K[2,8] = gamma*0
+
+    new_row = np.zeros((3,N))
+
+    new_row[:,3*g0+0] = tau*(np.dot(R_partial(n,K[:,0],theta),v0-v1) + R[:,0])
+    new_row[:,3*g0+1] = tau*(np.dot(R_partial(n,K[:,1],theta),v0-v1) + R[:,1])
+    new_row[:,3*g0+2] = tau*(np.dot(R_partial(n,K[:,2],theta),v0-v1) + R[:,2])
+
+    new_row[:,3*g1+0] = tau*(np.dot(R_partial(n,K[:,3],theta),v0-v1) - R[:,0]) + np.array([1.0,0,0]).T 
+    new_row[:,3*g1+1] = tau*(np.dot(R_partial(n,K[:,4],theta),v0-v1) - R[:,1]) + np.array([0,1.0,0]).T 
+    new_row[:,3*g1+2] = tau*(np.dot(R_partial(n,K[:,5],theta),v0-v1) - R[:,2]) + np.array([0,0,1.0]).T 
+
+    new_row[:,3*g2+0] = tau*(np.dot(R_partial(n,K[:,6],theta),v0-v1))
+    new_row[:,3*g2+1] = tau*(np.dot(R_partial(n,K[:,7],theta),v0-v1))
+    new_row[:,3*g2+2] = tau*(np.dot(R_partial(n,K[:,8],theta),v0-v1))
+
+    new_row[:,3*gk+0] = np.array([-1.0,0,0]).T
+    new_row[:,3*gk+1] = np.array([0,-1.0,0]).T
+    new_row[:,3*gk+2] = np.array([0,0,-1.0]).T
+
+    return new_row
+
+
+def hasedge(a,b,f_inds):
+    #a,b are faces
+    count = 0
+    for v in f_inds[a]: 
+        if v in f_inds[b]:
+            count += 1
+    if count == 2:
+        return True
+    return False
+
+def R_partial(n,dn,theta):
+    Rp = np.zeros((3,3))
+    
+    Rp[0,0] = 2.0*n[0]*dn[0]*(1.0-np.cos(theta))
+    Rp[1,0] = (1.0-np.cos(theta))*(n[1]*dn[0] + dn[1]*n[0]) + dn[2]*np.sin(theta)
+    Rp[2,0] = (1.0-np.cos(theta))*(n[2]*dn[0] + dn[2]*n[0]) - dn[1]*np.sin(theta)
+    
+    Rp[0,1] = (1.0-np.cos(theta))*(n[0]*dn[1] + dn[0]*n[1]) - dn[2]*np.sin(theta)
+    Rp[1,1] = 2.0*n[1]*dn[1]*(1.0-np.cos(theta))
+    Rp[2,1] = (1.0-np.cos(theta))*(n[2]*dn[1] + dn[2]*n[1]) + dn[0]*np.sin(theta)
+    
+    Rp[0,2] = (1.0-np.cos(theta))*(n[0]*dn[2] + dn[0]*n[2]) + dn[1]*np.sin(theta)
+    Rp[1,2] = (1.0-np.cos(theta))*(n[1]*dn[2] + dn[1]*n[2]) - dn[0]*np.sin(theta)
+    Rp[2,2] = 2.0*n[2]*dn[2]*(1.0-np.cos(theta))
+    
+    return Rp
+
+def DoF(inter,v,f_inds):
+    g_inds = []
+    #g_inv_inds = []
+    g_i = 0
+    for q in range(len(inter)):
+        g_inds.append(range(g_i,g_i+len(f_inds[q])))
+        g_i += len(f_inds[q])
+    
+    if sum(inter) == 0:
+        return 0, np.array([])
+                       
+    # Base Constraints
+    N = 3*(g_i)
+    #N = 3*v.shape[0]
+    base = first_face(inter)
+    if base == -1:
+        return 0,np.array([])
+    J = np.zeros((3*len(f_inds[base]),N))
+    for i in range(len(f_inds[base])):
+        J[3*i+0,3*g_inds[base][i]+0] = 1.0
+        J[3*i+1,3*g_inds[base][i]+1] = 1.0
+        J[3*i+2,3*g_inds[base][i]+2] = 1.0
+    # Length Constraints
+    for j in range(len(f_inds)):
+        if inter[j] != 0:
+            # Same Vertex Constraints
+            for w in range(j):
+                if inter[w] != 0 and hasedge(j,w,f_inds): ##should give same results as before. until this line used
+                #if inter[w] != 0:
+                    for r in range(len(f_inds[j])):
+                        if f_inds[j][r] in f_inds[w]:
+                            #w_ind = np.where(f_inds[j][r] == f_inds[w])
+                            w_ind = f_inds[w].index(f_inds[j][r])
+                            new_row = np.zeros((3,N))
+                            new_row[0,3*g_inds[j][r]+0] = 1.0
+                            new_row[0,3*g_inds[w][w_ind]+0] = -1.0                          
+                            new_row[1,3*g_inds[j][r]+1] = 1.0
+                            new_row[1,3*g_inds[w][w_ind]+1] = -1.0                          
+                            new_row[2,3*g_inds[j][r]+2] = 1.0
+                            new_row[2,3*g_inds[w][w_ind]+2] = -1.0                          
+                            J = np.vstack((J,new_row))
+                            #print 'SVC'
+            # Edge Length Constraints
+            for k in range(len(f_inds[j])):
+                new_row = np.zeros((1,N))
+                new_row[0,3*g_inds[j][k-0]+0] = 2.0*(v[f_inds[j][k-0],0] - v[f_inds[j][k-1],0])                       
+                new_row[0,3*g_inds[j][k-1]+0] = 2.0*(v[f_inds[j][k-1],0] - v[f_inds[j][k-0],0])                       
+                new_row[0,3*g_inds[j][k-0]+1] = 2.0*(v[f_inds[j][k-0],1] - v[f_inds[j][k-1],1])                       
+                new_row[0,3*g_inds[j][k-1]+1] = 2.0*(v[f_inds[j][k-1],1] - v[f_inds[j][k-0],1])                       
+                new_row[0,3*g_inds[j][k-0]+2] = 2.0*(v[f_inds[j][k-0],2] - v[f_inds[j][k-1],2])                       
+                new_row[0,3*g_inds[j][k-1]+2] = 2.0*(v[f_inds[j][k-1],2] - v[f_inds[j][k-0],2])                       
+                J = np.vstack((J,new_row))
+            # Face Angle Constraints
+            new_row = np.zeros((1,N))
+            new_row[0,3*g_inds[j][0]+0] = v[f_inds[j][2],0] - v[f_inds[j][1],0]                          
+            new_row[0,3*g_inds[j][1]+0] = 2.0*v[f_inds[j][1],0] - v[f_inds[j][0],0] - v[f_inds[j][2],0] 
+            new_row[0,3*g_inds[j][2]+0] = v[f_inds[j][0],0] - v[f_inds[j][1],0]                              
+            new_row[0,3*g_inds[j][0]+1] = v[f_inds[j][2],1] - v[f_inds[j][1],1]                          
+            new_row[0,3*g_inds[j][1]+1] = 2.0*v[f_inds[j][1],1] - v[f_inds[j][0],1] - v[f_inds[j][2],1] 
+            new_row[0,3*g_inds[j][2]+1] = v[f_inds[j][0],1] - v[f_inds[j][1],1]                          
+            new_row[0,3*g_inds[j][0]+2] = v[f_inds[j][2],2] - v[f_inds[j][1],2]                          
+            new_row[0,3*g_inds[j][1]+2] = 2.0*v[f_inds[j][1],2] - v[f_inds[j][0],2] - v[f_inds[j][2],2] 
+            new_row[0,3*g_inds[j][2]+2] = v[f_inds[j][0],2] - v[f_inds[j][1],2]                          
+            J = np.vstack((J,new_row))
+            for k in range(3,len(f_inds[j])):
+                J = np.vstack((J,
+                               face_constraints(v,
+                                                f_inds[j][0],
+                                                f_inds[j][1],
+                                                f_inds[j][2],
+                                                f_inds[j][k],
+                                                g_inds[j][0],
+                                                g_inds[j][1],
+                                                g_inds[j][2],
+                                                g_inds[j][k],
+                                                N)))
+                
+    free_vars = 0
+    for k in range(v.shape[0]):
+        af = 0
+        for i in range(len(f_inds)):
+            if k in f_inds[i] and inter[i] != 0:
+                af += 1
+                break
+        if af == 0:
+            free_vars += 3
+
+    rank1 = numpy.linalg.matrix_rank(J)
+    #u, s, v = np.linalg.svd(J)
+    #print u
+    #rank2 = np.sum(s > 1e-4)
+    #rank2 = -1
+    #if rank1 != rank2:
+    #     print "oh dear. the ranks is fucked."
+    #print 'J size',J.shape,'free variables',free_vars,'rank',rank1,rank2
+    #print J
+    rank = rank1
+    #return N - rank - free_vars, J
+    fv = sum(np.array([len(g_inds[i]) for i in range(len(inter)) if inter[i] == 0]))
+    #print "returns",N,rank,fv
+    return N - rank - 3*fv, J
+
+
+
+
 
 #
 ##poly_name = 'tetrahedron'
