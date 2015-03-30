@@ -64,22 +64,24 @@ def transision_energies(Es, edges):
     
     return E_j, E_k
 
-def get_rates(epsilon, beta, int_dict, edges, edge_rate_inds, E_j, E_k, Ss, Ts):
+def get_rates(epsilon, beta, int_dict, edges, edge_rate_inds, E_j, E_k, Ss, Ts, beta_0=1.0):
     """
     Compute forward and then backward transition rates for bgss.
     """
+    Q_hat = np.zeros(len(edges))
     forward_rates = np.zeros(len(edges))
     backward_rates = np.zeros(len(edges))
 
     
     for k, e in enumerate(edges):
         if len(edge_rate_inds[tuple(e)]) == 0:
-            forward_rates[k] = 1.0
+            Q_hat[k] = 1.0
         else:
-            forward_rates[k] = get_rate(epsilon, e[0], edge_rate_inds[tuple(e)], int_dict)
+            Q_hat[k] = get_rate(epsilon, e[0], edge_rate_inds[tuple(e)], int_dict)
             
-    forward_rates *= Ss
-    E_jk = E_j - (1.0/beta)*np.log(forward_rates/Ss)
+    Q_hat *= Ss
+    E_jk = E_j - (1.0/beta_0)*np.log(Q_hat/Ss)
+    forward_rates = Ss*np.exp(-beta*(E_jk - E_j))
     backward_rates = Ts*np.exp(-beta*(E_jk - E_k))
 
     return forward_rates, backward_rates, E_jk
