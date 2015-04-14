@@ -248,8 +248,8 @@ def optimize_sampling(poly_name, num_ints, err_tol):
 
 ### SIMULATION PARAMETERS
 #poly_name = 'tetrahedron'
-poly_name = 'octahedron'
-#poly_name = 'icosahedron'
+#poly_name = 'octahedron'
+poly_name = 'icosahedron'
 
 
 verts, face_inds, cents = getattr(poly, poly_name)()
@@ -258,7 +258,7 @@ ints, ids, paths, shell_int, shell_paths, edges, shell_edge = bga.get_bg_ss(poly
 
 num_processes = 4
 
-err_tol = 10**-12
+err_tol = 10**-9
 N = 10**7
 archive_rate = 10**6
 output_rate = 10**5
@@ -268,7 +268,7 @@ sample_time = 1.0
 num_ints = len(ints)
 int_list = range(1, num_ints)
 
-run_str = "test4"
+run_str = "icosA"
 
 if __name__ == "__main__":
     print_sysinfo()
